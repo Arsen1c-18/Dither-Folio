@@ -1,0 +1,194 @@
+@import "tailwindcss";
+
+/*
+ * ─────────────────────────────────────────────────────────────
+ *  DESIGN TOKENS — "Digital OS" portfolio
+ *  Dark theme only. Near-black canvas, layered surfaces,
+ *  hairline borders, bright-red accent used sparingly.
+ * ─────────────────────────────────────────────────────────────
+ */
+
+@theme inline {
+  /* Fonts — variables are set by next/font in layout.tsx */
+  --font-display: var(--font-space-grotesk);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-jetbrains-mono);
+
+  /* Core surfaces */
+  --color-bg: #050505;
+  --color-surface: #0a0a0a;
+  --color-surface-2: #0f0f0f;
+  --color-elevated: #141414;
+
+  /* Text */
+  --color-foreground: #f5f5f5;
+  --color-muted: #a1a1a1;
+  --color-subtle: #6b6b6b;
+  --color-faint: #3a3a3a;
+
+  /* Borders / hairlines */
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-border-strong: rgba(255, 255, 255, 0.14);
+
+  /* Accent — bright red, use sparingly */
+  --color-accent: #ff3b3b;
+  --color-accent-bright: #ff4d4d;
+  --color-accent-dim: #b32a2a;
+
+  /* Status */
+  --color-online: #4ade80;
+
+  /* Layout */
+  --spacing-gutter: 1.5rem;
+  --breakpoint-3xl: 1600px;
+
+  /* Motion */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out-soft: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Max content width helper (~1400px) used across sections */
+@utility container-page {
+  width: 100%;
+  max-width: 1400px;
+  margin-inline: auto;
+  padding-inline: 1.5rem;
+}
+
+/*
+ * ─────────────────────────────────────────────────────────────
+ *  BASE
+ * ─────────────────────────────────────────────────────────────
+ */
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    scroll-behavior: auto; /* Lenis handles smoothing later */
+  }
+
+  body {
+    background-color: var(--color-bg);
+    background-image:
+      radial-gradient(circle at 50% 12%, rgba(255, 59, 59, 0.055), transparent 28rem),
+      linear-gradient(90deg, transparent calc(50% - 1px), rgba(255,255,255,0.025) 50%, transparent calc(50% + 1px));
+    background-attachment: fixed;
+    color: var(--color-foreground);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+    font-feature-settings: "ss01", "cv01";
+  }
+
+  /* Headings default to the display face */
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  /* Selection */
+  ::selection {
+    background: var(--color-accent);
+    color: #050505;
+  }
+
+  /* Thin, on-brand scrollbar (visible when Lenis is not active) */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-faint);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-subtle);
+  }
+
+  /* Focus visibility for keyboard users */
+  :focus-visible {
+    outline: 1px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+.scroll-progress {
+  position: fixed;
+  z-index: 60;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  transform-origin: 0%;
+  background: linear-gradient(90deg, var(--color-accent), #ff8a8a);
+  box-shadow: 0 0 18px rgba(255, 59, 59, 0.65);
+}
+
+.section-flow {
+  position: relative;
+}
+
+.section-flow::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 1px;
+  height: 3.5rem;
+  background: linear-gradient(transparent, var(--color-border-strong));
+}
+
+/*
+ * ─────────────────────────────────────────────────────────────
+ *  UTILITIES
+ * ─────────────────────────────────────────────────────────────
+ */
+@layer utilities {
+  /* System-label styling: tiny uppercase mono text used everywhere */
+  .label-system {
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-subtle);
+  }
+
+  /* Glass panel surface */
+  .glass {
+    background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+    backdrop-filter: blur(12px) saturate(120%);
+    -webkit-backdrop-filter: blur(12px) saturate(120%);
+    border: 1px solid var(--color-border);
+  }
+
+  /* Very subtle film-grain overlay (attach to a fixed layer) */
+  .film-grain::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+/* Respect reduced-motion globally as a safety net */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
