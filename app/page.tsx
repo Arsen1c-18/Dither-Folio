@@ -6,10 +6,12 @@ import { Experience } from "@/components/sections/Experience";
 import { Projects } from "@/components/sections/Projects";
 import { Skills } from "@/components/sections/Skills";
 import { Contact } from "@/components/sections/Contact";
+import { LoadingScreen } from "@/components/layout/LoadingScreen";
 
 export default function Home() {
   return (
     <>
+      <LoadingScreen />
       <Navbar />
       <main>
         <Hero />

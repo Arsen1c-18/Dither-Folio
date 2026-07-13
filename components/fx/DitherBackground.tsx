@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
+import { data } from "@/lib/data";
 
 /**
  * Client-only wrapper around the interactive React Bits-inspired dither shader.
@@ -24,42 +25,12 @@ const Dither = dynamic(
   { ssr: false },
 );
 
-/** Tuning presets — pick a mood, override individual props as needed. */
-export const ditherPresets = {
-  /** Slow, moody field for full-screen hero backdrops. */
-  hero: {
-    waveSpeed: 0.12,
-    waveFrequency: 1,
-    waveAmplitude: 0.25,
-    waveColor: [0.6, 0.6, 0.6] as [number, number, number],
-    colorNum: 12,
-    pixelSize: 2,
-    enableMouseInteraction: true,
-    mouseRadius: 0.1,
-  },
-  /** Faster, tighter grain for smaller contained panels. */
-  panel: {
-    waveSpeed: 0.06,
-    waveFrequency: 5,
-    waveAmplitude: 0.4,
-    waveColor: [0.65, 0.18, 0.18] as [number, number, number],
-    colorNum: 4,
-    pixelSize: 3,
-    enableMouseInteraction: false,
-    mouseRadius: 1,
-  },
-  /** Very still, low-contrast strip for footers / dividers. */
-  strip: {
-    waveSpeed: 0.025,
-    waveFrequency: 4,
-    waveAmplitude: 0.25,
-    waveColor: [0.42, 0.40, 0.38] as [number, number, number],
-    colorNum: 4,
-    pixelSize: 2,
-    enableMouseInteraction: false,
-    mouseRadius: 1,
-  },
-} satisfies Record<string, DitherProps>;
+/**
+ * Tuning presets — pick a mood, override individual props as needed.
+ * Sourced from data/portfolio.json (`fx`) so the dev-only dashboard can
+ * live-tune the shader.
+ */
+export const ditherPresets = data.fx satisfies Record<string, DitherProps>;
 
 export type DitherPreset = keyof typeof ditherPresets;
 

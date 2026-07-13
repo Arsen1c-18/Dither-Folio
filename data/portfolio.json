@@ -1,0 +1,262 @@
+{
+  "site": {
+    "name": "Moksh Parashate",
+    "handle": "MOKSH_",
+    "role": "Software Engineer",
+    "tagline": "Building scalable systems, exploring AI and turning ideas into impact.",
+    "location": "Pune, IN",
+    "timezone": "Asia/Kolkata",
+    "email": "hello@example.com",
+    "available": true,
+    "resumeUrl": "/resume.pdf",
+    "metadataBase": "https://example.com"
+  },
+  "socials": [
+    {
+      "label": "GitHub",
+      "href": "https://github.com/",
+      "handle": "@moksh"
+    },
+    {
+      "label": "LinkedIn",
+      "href": "https://linkedin.com/in/",
+      "handle": "in/moksh"
+    },
+    {
+      "label": "X",
+      "href": "https://x.com/",
+      "handle": "@moksh"
+    },
+    {
+      "label": "Email",
+      "href": "mailto:hello@example.com",
+      "handle": "hello@example.com"
+    }
+  ],
+  "nav": [
+    {
+      "label": "Home",
+      "id": "hero"
+    },
+    {
+      "label": "About",
+      "id": "about"
+    },
+    {
+      "label": "Experience",
+      "id": "experience"
+    },
+    {
+      "label": "Projects",
+      "id": "projects"
+    },
+    {
+      "label": "Skills",
+      "id": "skills"
+    },
+    {
+      "label": "Contact",
+      "id": "contact"
+    }
+  ],
+  "theme": {
+    "accent": "#ff3b3b",
+    "accentBright": "#ff4d4d",
+    "accentDim": "#b32a2a"
+  },
+  "fx": {
+    "hero": {
+      "waveSpeed": 0.135,
+      "waveFrequency": 8.2,
+      "waveAmplitude": 0,
+      "waveColor": [
+        0.6,
+        0.6,
+        0.6
+      ],
+      "colorNum": 16,
+      "pixelSize": 1,
+      "enableMouseInteraction": true,
+      "mouseRadius": 0.35
+    },
+    "panel": {
+      "waveSpeed": 0.06,
+      "waveFrequency": 5,
+      "waveAmplitude": 0.25,
+      "waveColor": [
+        0.9647058823529412,
+        0.3803921568627451,
+        0.3176470588235294
+      ],
+      "colorNum": 4,
+      "pixelSize": 1,
+      "enableMouseInteraction": false,
+      "mouseRadius": 1
+    },
+    "strip": {
+      "waveSpeed": 0.025,
+      "waveFrequency": 4,
+      "waveAmplitude": 0.25,
+      "waveColor": [
+        0.42,
+        0.4,
+        0.38
+      ],
+      "colorNum": 4,
+      "pixelSize": 2,
+      "enableMouseInteraction": false,
+      "mouseRadius": 1
+    }
+  },
+  "about": {
+    "bio": [
+      "I'm {name} — a software engineer who cares equally about correctness and craft. I gravitate toward problems that sit at the intersection of distributed systems, developer experience, and machine learning.",
+      "When I'm not wiring up event-driven pipelines or tuning RAG retrieval strategies, you'll find me reading programming language theory papers or tinkering with generative art in WebGL.",
+      "I believe the best software is invisible — it quietly does what the user expects, scales without drama, and the developer who inherits it can still read it six months later."
+    ],
+    "stats": [
+      {
+        "label": "Years of experience",
+        "value": "4+"
+      },
+      {
+        "label": "Projects shipped",
+        "value": "20+"
+      },
+      {
+        "label": "Open-source contributions",
+        "value": "300+"
+      },
+      {
+        "label": "Cups of coffee",
+        "value": "∞"
+      }
+    ]
+  },
+  "experience": [
+    {
+      "id": "exp-01",
+      "role": "Software Engineer",
+      "org": "Nebula Systems",
+      "period": "2024 — Present",
+      "current": true,
+      "summary": "Building distributed data pipelines and internal AI tooling. Led the migration to an event-driven architecture serving 2M+ daily events."
+    },
+    {
+      "id": "exp-02",
+      "role": "Full-Stack Developer",
+      "org": "Loom Labs",
+      "period": "2022 — 2024",
+      "summary": "Shipped customer-facing dashboards in React and Next.js, and owned the GraphQL API layer end to end."
+    },
+    {
+      "id": "exp-03",
+      "role": "Engineering Intern",
+      "org": "Orbit Digital",
+      "period": "2021 — 2022",
+      "summary": "Prototyped internal automation tools and contributed to the design-system component library."
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj-01",
+      "title": "Synapse",
+      "description": "A retrieval-augmented chat platform with streaming responses and pluggable model backends.",
+      "year": "2025",
+      "category": "ai-ml",
+      "stack": [
+        "Next.js",
+        "Python",
+        "pgvector",
+        "Anthropic"
+      ],
+      "href": "#"
+    },
+    {
+      "id": "proj-02",
+      "title": "Meridian",
+      "description": "Real-time analytics dashboard visualizing millions of rows with sub-100ms interaction.",
+      "year": "2024",
+      "category": "web-apps",
+      "stack": [
+        "React",
+        "D3",
+        "ClickHouse"
+      ],
+      "href": "#"
+    },
+    {
+      "id": "proj-03",
+      "title": "Forge CLI",
+      "description": "A developer tool that scaffolds, lints, and deploys micro-services from a single config.",
+      "year": "2024",
+      "category": "tools",
+      "stack": [
+        "Go",
+        "Cobra",
+        "Docker"
+      ],
+      "href": "#"
+    },
+    {
+      "id": "proj-04",
+      "title": "Voxel",
+      "description": "An image-to-3D pipeline turning reference photos into printable meshes via a diffusion model.",
+      "year": "2023",
+      "category": "ai-ml",
+      "stack": [
+        "PyTorch",
+        "Three.js",
+        "FastAPI"
+      ],
+      "href": "#"
+    }
+  ],
+  "skills": [
+    {
+      "name": "TypeScript",
+      "level": 92,
+      "category": "Languages"
+    },
+    {
+      "name": "Python",
+      "level": 88,
+      "category": "Languages"
+    },
+    {
+      "name": "Go",
+      "level": 72,
+      "category": "Languages"
+    },
+    {
+      "name": "React / Next.js",
+      "level": 94,
+      "category": "Frontend"
+    },
+    {
+      "name": "Three.js / WebGL",
+      "level": 68,
+      "category": "Frontend"
+    },
+    {
+      "name": "Node.js",
+      "level": 85,
+      "category": "Backend"
+    },
+    {
+      "name": "PostgreSQL",
+      "level": 80,
+      "category": "Backend"
+    },
+    {
+      "name": "Docker / K8s",
+      "level": 76,
+      "category": "Infra"
+    },
+    {
+      "name": "LLMs / RAG",
+      "level": 82,
+      "category": "AI/ML"
+    }
+  ]
+}

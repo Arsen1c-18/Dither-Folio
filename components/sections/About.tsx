@@ -1,4 +1,5 @@
 import { site, socials } from "@/constants/site";
+import { about } from "@/constants/content";
 import { Section } from "@/components/layout/Section";
 import { DitherBackground } from "@/components/fx/DitherBackground";
 
@@ -8,34 +9,21 @@ import { DitherBackground } from "@/components/fx/DitherBackground";
  * glass-morphic backdrop so it visually echoes the hero.
  */
 export function About() {
-  const stats = [
-    { label: "Years of experience", value: "4+" },
-    { label: "Projects shipped", value: "20+" },
-    { label: "Open-source contributions", value: "300+" },
-    { label: "Cups of coffee", value: "∞" },
-  ];
+  const stats = about.stats;
 
   return (
     <Section id="about" index="01" title="About">
       <div className="grid grid-cols-1 gap-10 lg:grid-cols-5">
         {/* Narrative ─ 3 / 5 */}
         <div className="flex flex-col gap-6 lg:col-span-3">
-          <p className="text-balance text-base leading-relaxed text-[var(--color-muted)] sm:text-lg">
-            I&apos;m <strong className="font-medium text-[var(--color-foreground)]">{site.name}</strong> — a
-            software engineer who cares equally about correctness and craft.
-            I gravitate toward problems that sit at the intersection of
-            distributed systems, developer experience, and machine learning.
-          </p>
-          <p className="text-balance text-base leading-relaxed text-[var(--color-muted)] sm:text-lg">
-            When I&apos;m not wiring up event-driven pipelines or tuning RAG
-            retrieval strategies, you&apos;ll find me reading programming
-            language theory papers or tinkering with generative art in WebGL.
-          </p>
-          <p className="text-balance text-base leading-relaxed text-[var(--color-muted)] sm:text-lg">
-            I believe the best software is invisible — it quietly does what the
-            user expects, scales without drama, and the developer who inherits
-            it can still read it six months later.
-          </p>
+          {about.bio.map((paragraph, i) => (
+            <p
+              key={i}
+              className="text-balance text-base leading-relaxed text-[var(--color-muted)] sm:text-lg"
+            >
+              {renderBio(paragraph, site.name)}
+            </p>
+          ))}
 
           <div className="mt-2 flex flex-wrap gap-3">
             {socials.map((s) => (
@@ -105,6 +93,26 @@ export function About() {
       </div>
     </Section>
   );
+}
+
+/**
+ * Render a bio paragraph, replacing the `{name}` token with the owner's name
+ * styled as bold foreground text (matching the original hand-written markup).
+ */
+function renderBio(paragraph: string, name: string): React.ReactNode {
+  const parts = paragraph.split("{name}");
+  if (parts.length === 1) return paragraph;
+
+  return parts.map((part, i) => (
+    <span key={i}>
+      {part}
+      {i < parts.length - 1 && (
+        <strong className="font-medium text-[var(--color-foreground)]">
+          {name}
+        </strong>
+      )}
+    </span>
+  ));
 }
 
 function Row({

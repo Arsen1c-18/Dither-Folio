@@ -16,7 +16,8 @@ export function Hero() {
       : {
           initial: { opacity: 0, y: 20, filter: "blur(8px)" },
           animate: { opacity: 1, y: 0, filter: "blur(0px)" },
-          transition: { duration: 0.8, delay, ease: [0.22, 1, 0.36, 1] as const },
+          // Add 2.6s to sync with the loading screen fade out
+          transition: { duration: 0.8, delay: delay + 2.6, ease: [0.22, 1, 0.36, 1] as const },
         };
 
   return (
@@ -24,7 +25,18 @@ export function Hero() {
       id="hero"
       className="relative flex min-h-screen items-center justify-center overflow-hidden"
     >
-      <DitherBackground preset="hero" overlay={0} />
+      {/* Mask-image seamlessly fades the canvas into the background colour of the next section at the bottom */}
+      <div 
+        className="absolute inset-0 pointer-events-none" 
+        style={{ 
+          maskImage: 'linear-gradient(to bottom, black 60%, transparent 100%)',
+          WebkitMaskImage: 'linear-gradient(to bottom, black 70%, transparent 100%)'
+        }}
+      >
+        <div className="pointer-events-auto h-full w-full">
+          <DitherBackground preset="hero" overlay={0} />
+        </div>
+      </div>
 
       <div className="container-page relative flex flex-col items-center gap-8 text-center">
         <motion.span {...reveal(0.1)} className="label-system flex items-center gap-2">
