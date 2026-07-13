@@ -184,11 +184,11 @@ function DitheredWaves({
 
   const handlePointerMove = (e) => {
     if (!enableMouseInteraction) return;
-    const rect = gl.domElement.getBoundingClientRect();
-    const dpr  = gl.getPixelRatio();
+    const dpr = gl.getPixelRatio();
+    // Using nativeEvent.offsetX avoids getBoundingClientRect() which causes severe layout thrashing/lag
     mouseRef.current.set(
-      (e.clientX - rect.left) * dpr,
-      (e.clientY - rect.top)  * dpr,
+      e.nativeEvent.offsetX * dpr,
+      e.nativeEvent.offsetY * dpr,
     );
   };
 
