@@ -16,11 +16,6 @@ void main() {
 }
 `;
 
-/*
- * Single-pass: classic Perlin fbm wave → Bayer 8×8 ordered dither.
- * We do everything in screen-space (gl_FragCoord) so no extra render target
- * or postprocessing pass is needed.
- */
 const fragmentShader = `
 precision highp float;
 
@@ -67,27 +62,27 @@ float fbm(vec2 p){
 }
 
 float pattern(vec2 p){
-  return fbm(p + fbm(p - time*waveSpeed));
+  vec2 p2=p-time*waveSpeed;
+  return fbm(p+fbm(p2));
 }
 
 /* ── Bayer 8×8 ────────────────────────────────────────────────── */
 float bayerValue(int x, int y){
   int idx = y*8+x;
-  /* Row-major flattened Bayer 8×8 */
   float B[64];
   B[0]=0.;  B[1]=32.; B[2]=8.;  B[3]=40.; B[4]=2.;  B[5]=34.; B[6]=10.; B[7]=42.;
   B[8]=48.; B[9]=16.; B[10]=56.;B[11]=24.;B[12]=50.;B[13]=18.;B[14]=58.;B[15]=26.;
   B[16]=12.;B[17]=44.;B[18]=4.; B[19]=36.;B[20]=14.;B[21]=46.;B[22]=6.; B[23]=38.;
   B[24]=60.;B[25]=28.;B[26]=52.;B[27]=20.;B[28]=62.;B[29]=30.;B[30]=54.;B[31]=22.;
-  B[32]=3.; B[33]=35.; B[34]=11.;B[35]=43.;B[36]=1.; B[37]=33.;B[38]=9.; B[39]=41.;
-  B[40]=51.;B[41]=19.;B[42]=59.;B[43]=27.;B[44]=49.;B[45]=17.;B[46]=57.;B[47]=25.;
-  B[48]=15.;B[49]=47.; B[50]=7.;B[51]=39.;B[52]=13.;B[53]=45.;B[54]=5.; B[55]=37.;
-  B[56]=63.;B[57]=31.;B[58]=55.;B[59]=23.;B[60]=61.;B[61]=29.;B[62]=53.;B[63]=21.;
+  B[32]=2.; B[33]=50.;B[34]=14.;B[35]=62.;B[36]=1.; B[37]=49.;B[38]=13.;B[39]=61.;
+  B[40]=34.;B[41]=18.;B[42]=46.;B[43]=30.;B[44]=33.;B[45]=17.;B[46]=45.;B[47]=29.;
+  B[48]=10.;B[49]=58.;B[50]=6.; B[51]=54.;B[52]=9.; B[53]=57.;B[54]=5.; B[55]=53.;
+  B[56]=42.;B[57]=26.;B[58]=38.;B[59]=22.;B[60]=41.;B[61]=25.;B[62]=37.;B[63]=21.;
   return B[idx]/64.;
 }
 
 void main(){
-  /* Guard: resolution not yet set → output black silently */
+  /* Guard: resolution not yet set */
   if(resolution.x < 1. || resolution.y < 1.){
     gl_FragColor = vec4(0.,0.,0.,1.);
     return;
@@ -97,19 +92,19 @@ void main(){
   float ps = max(pixelSize, 1.);
   vec2 snapped = (floor(gl_FragCoord.xy / ps) + 0.5) * ps;
 
-  /* 2. NDC-style UV: [-0.5, 0.5], aspect-corrected */
+  /* 2. NDC UV: [-0.5, 0.5], aspect-corrected */
   vec2 uv = snapped / resolution - 0.5;
-  uv.x   *= resolution.x / resolution.y;
+  uv.x *= resolution.x / resolution.y;
 
   /* 3. Wave field */
   float f = pattern(uv);
 
   /* 4. Mouse ripple */
   if(enableMouseInteraction == 1){
-    vec2 mNDC = (mousePos / resolution - 0.5) * vec2(1.,-1.);
-    mNDC.x   *= resolution.x / resolution.y;
-    float d   = length(uv - mNDC);
-    f        -= 0.5 * (1. - smoothstep(0., mouseRadius, d));
+    vec2 mNDC = (mousePos / resolution - 0.5) * vec2(1., -1.);
+    mNDC.x *= resolution.x / resolution.y;
+    float d = length(uv - mNDC);
+    f -= 0.5 * (1. - smoothstep(0., mouseRadius, d));
   }
 
   /* 5. Map to colour */
@@ -118,7 +113,7 @@ void main(){
   /* 6. Bayer ordered dither */
   int bx = int(mod(gl_FragCoord.x / ps, 8.));
   int by = int(mod(gl_FragCoord.y / ps, 8.));
-  float thr    = bayerValue(bx, by) - 0.5;   /* centre around 0 */
+  float thr    = bayerValue(bx, by) - 0.5;
   float levels = max(colorNum - 1., 1.);
   col = clamp(col + thr / levels, 0., 1.);
   col = floor(col * levels + 0.5) / levels;
@@ -140,8 +135,6 @@ function DitheredWaves({
   enableMouseInteraction,
   mouseRadius,
 }) {
-  /* Reference the ShaderMaterial directly so useFrame always writes to the
-     exact uniform store that the GPU is reading — no stale-closure risk. */
   const matRef   = useRef(null);
   const mouseRef = useRef(new THREE.Vector2());
   const { viewport, size, gl } = useThree();
@@ -163,10 +156,8 @@ function DitheredWaves({
     if (!mat) return;
     const u = mat.uniforms;
 
-    /* Time — always use the R3F clock so it plays nicely with pausing */
     if (!disableAnimation) u.time.value = clock.getElapsedTime();
 
-    /* Sync props every frame (cheap, avoids stale closures) */
     u.waveSpeed.value              = waveSpeed;
     u.waveFrequency.value          = waveFrequency;
     u.waveAmplitude.value          = waveAmplitude;
@@ -175,7 +166,6 @@ function DitheredWaves({
     u.enableMouseInteraction.value = enableMouseInteraction ? 1 : 0;
     u.mouseRadius.value            = mouseRadius;
 
-    /* Colour — only allocate when it actually changes */
     if (!prevColor.current.every((v, i) => v === waveColor[i])) {
       u.waveColor.value.setRGB(...waveColor);
       prevColor.current = [...waveColor];
@@ -183,7 +173,7 @@ function DitheredWaves({
 
     if (enableMouseInteraction) u.mousePos.value.copy(mouseRef.current);
 
-    /* Safety-net: keep resolution in sync even if the effect fired early */
+    /* Resolution safety-net */
     const dpr = gl.getPixelRatio();
     const rw  = size.width  * dpr;
     const rh  = size.height * dpr;
@@ -202,7 +192,6 @@ function DitheredWaves({
     );
   };
 
-  /* Build the initial uniforms object once */
   const initialUniforms = useRef({
     time:                   { value: 0 },
     resolution:             { value: new THREE.Vector2(1, 1) },
@@ -229,7 +218,7 @@ function DitheredWaves({
         />
       </mesh>
 
-      {/* Invisible hit-plane so pointer events work through the overlay */}
+      {/* Invisible hit-plane for pointer events */}
       <mesh
         onPointerMove={handlePointerMove}
         position={[0, 0, 0.01]}

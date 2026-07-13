@@ -1,5 +1,4 @@
 import { site, socials } from "@/constants/site";
-import { DitherBackground } from "@/components/fx/DitherBackground";
 
 /**
  * Footer with a still Dither strip behind the wordmark — a second, calmer
@@ -10,8 +9,15 @@ export function Footer() {
 
   return (
     <footer className="relative overflow-hidden border-t border-[var(--color-border)]">
-      {/* Dither reused as a low-contrast backdrop strip */}
-      <DitherBackground preset="strip" overlay={0.55} className="opacity-60" />
+      {/* Subtle radial gradient — replaces the Dither strip to avoid dual-Canvas R3F conflicts */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 80% 60% at 50% 120%, rgba(255,255,255,0.04) 0%, transparent 70%)",
+        }}
+      />
 
       <div className="container-page relative flex flex-col gap-10 py-16">
         <div className="flex flex-col justify-between gap-8 sm:flex-row sm:items-end">

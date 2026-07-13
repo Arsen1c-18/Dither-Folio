@@ -28,14 +28,14 @@ const Dither = dynamic(
 export const ditherPresets = {
   /** Slow, moody field for full-screen hero backdrops. */
   hero: {
-    waveSpeed: 0.08,
-    waveFrequency: 3,
-    waveAmplitude: 0.35,
-    waveColor: [0.72, 0.68, 0.65] as [number, number, number],
-    colorNum: 4,
+    waveSpeed: 0.12,
+    waveFrequency: 1,
+    waveAmplitude: 0.25,
+    waveColor: [0.6, 0.6, 0.6] as [number, number, number],
+    colorNum: 12,
     pixelSize: 2,
     enableMouseInteraction: true,
-    mouseRadius: 0.3,
+    mouseRadius: 0.1,
   },
   /** Faster, tighter grain for smaller contained panels. */
   panel: {
@@ -91,16 +91,16 @@ export function DitherBackground({
   return (
     <div
       aria-hidden
-      className={cn("pointer-events-none absolute inset-0 overflow-hidden", className)}
+      className={cn("absolute inset-0 overflow-hidden", className)}
     >
-      <div className="absolute inset-0 [&_canvas]:pointer-events-auto">
+      <div className="absolute inset-0">
         <Dither {...props} />
       </div>
 
       {/* Legibility scrim */}
       {overlay > 0 && (
         <div
-          className="absolute inset-0"
+          className="pointer-events-none absolute inset-0"
           style={{ backgroundColor: `rgba(5,5,5,${overlay})` }}
         />
       )}

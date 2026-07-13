@@ -24,7 +24,7 @@ export function Hero() {
       id="hero"
       className="relative flex min-h-screen items-center justify-center overflow-hidden"
     >
-      <DitherBackground preset="hero" overlay={0.3} />
+      <DitherBackground preset="hero" overlay={0} />
 
       <div className="container-page relative flex flex-col items-center gap-8 text-center">
         <motion.span {...reveal(0.1)} className="label-system flex items-center gap-2">
