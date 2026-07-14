@@ -10,7 +10,7 @@ export function LoadingScreen() {
 
   useEffect(() => {
     // Smooth counter for the progress bar
-    const duration = 2000;
+    const duration = 5000;
     const interval = 20;
     const steps = duration / interval;
     let step = 0;
