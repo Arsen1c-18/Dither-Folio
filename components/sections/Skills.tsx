@@ -3,11 +3,11 @@
 import { useMemo } from "react";
 import { skills } from "@/constants/content";
 import { Section } from "@/components/layout/Section";
+import { ContributionGraph } from "@/components/fx/ContributionGraph";
 
 /**
- * Skills — grouped by category with animated bar meters.
- * The bars are pure CSS so they animate on first paint without JS scroll
- * observers (simple, reliable, respects prefers-reduced-motion via globals).
+ * Skills — grouped by category with animated bar meters, plus an
+ * animated GitHub contributions graph below.
  */
 export function Skills() {
   const grouped = useMemo(() => {
@@ -24,6 +24,7 @@ export function Skills() {
       title="Skills"
       kicker="Languages, frameworks, and infrastructure I work with regularly."
     >
+      {/* Skill category cards */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {Object.entries(grouped).map(([category, items]) => (
           <div
@@ -58,6 +59,11 @@ export function Skills() {
             </ul>
           </div>
         ))}
+      </div>
+
+      {/* Contribution graph — full width, below the skill cards */}
+      <div className="mt-8">
+        <ContributionGraph />
       </div>
     </Section>
   );

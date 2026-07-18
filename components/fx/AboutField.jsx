@@ -1,18 +1,21 @@
 /* eslint-disable react/no-unknown-property */
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
 import '../Dither.css';
 
-/* ─── Shaders ─────────────────────────────────────────────────────────────── */
 /*
- * A calm field of slowly drifting particles pushed through the same Bayer 8×8
- * ordered-dither + pixelation pipeline as components/Dither.jsx, so it shares
- * the site's dithered aesthetic. No mouse uniforms — interactivity lives in the
- * DOM tilt/parallax that wraps this canvas.
+ * Animated topology-grid shader for the About card.
+ *
+ * Renders:
+ *   • A fine dot grid that subtly breathes in brightness
+ *   • Concentric iso-contour rings (like a topographic map) that slowly expand
+ *   • A radial vignette so the centre glows and edges fade
+ *
+ * Pure GLSL, no dithering — clean, geometric, premium.
  */
 
 const vertexShader = `
@@ -27,29 +30,17 @@ precision highp float;
 
 uniform vec2  resolution;
 uniform float time;
-uniform vec3  particleColor;
-uniform float colorNum;
-uniform float pixelSize;
-uniform float particleSize;
+uniform vec3  accentColor;
+uniform vec3  gridColor;
 
-#define COUNT 72
+#define PI 3.141592653589793
+#define TAU 6.283185307179586
 
-float hash(float n){ return fract(sin(n) * 43758.5453123); }
+/* ── helpers ──────────────────────────────────────────────────── */
+float hash21(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 
-/* ── Bayer 8×8 (matches Dither.jsx) ───────────────────────────────── */
-float bayerValue(int x, int y){
-  int idx = y*8+x;
-  float B[64];
-  B[0]=0.;  B[1]=32.; B[2]=8.;  B[3]=40.; B[4]=2.;  B[5]=34.; B[6]=10.; B[7]=42.;
-  B[8]=48.; B[9]=16.; B[10]=56.;B[11]=24.;B[12]=50.;B[13]=18.;B[14]=58.;B[15]=26.;
-  B[16]=12.;B[17]=44.;B[18]=4.; B[19]=36.;B[20]=14.;B[21]=46.;B[22]=6.; B[23]=38.;
-  B[24]=60.;B[25]=28.;B[26]=52.;B[27]=20.;B[28]=62.;B[29]=30.;B[30]=54.;B[31]=22.;
-  B[32]=2.; B[33]=50.;B[34]=14.;B[35]=62.;B[36]=1.; B[37]=49.;B[38]=13.;B[39]=61.;
-  B[40]=34.;B[41]=18.;B[42]=46.;B[43]=30.;B[44]=33.;B[45]=17.;B[46]=45.;B[47]=29.;
-  B[48]=10.;B[49]=58.;B[50]=6.; B[51]=54.;B[52]=9.; B[53]=57.;B[54]=5.; B[55]=53.;
-  B[56]=42.;B[57]=26.;B[58]=38.;B[59]=22.;B[60]=41.;B[61]=25.;B[62]=37.;B[63]=21.;
-  return B[idx]/64.;
-}
+/* Smooth mod for contour rings */
+float smod(float x, float m){ return x - m * floor(x / m); }
 
 void main(){
   if(resolution.x < 1. || resolution.y < 1.){
@@ -57,96 +48,89 @@ void main(){
     return;
   }
 
-  /* 1. Pixelate by snapping to pixel-cell centres */
-  float ps = max(pixelSize, 1.);
-  vec2 snapped = (floor(gl_FragCoord.xy / ps) + 0.5) * ps;
+  /* 1. Aspect-correct UV centred at (0,0) */
+  vec2 uv = (gl_FragCoord.xy - resolution * 0.5) / min(resolution.x, resolution.y);
 
-  /* 2. Aspect-corrected UV, centred */
-  vec2 uv = snapped / resolution - 0.5;
-  uv.x *= resolution.x / resolution.y;
+  float t = time * 0.28;
 
-  /* 3. Accumulate slowly drifting particles */
-  float field = 0.;   // overall brightness
-  for(int i = 0; i < COUNT; i++){
-    float fi = float(i);
+  /* ── 2. Dot grid ───────────────────────────────────────────── */
+  float gridScale  = 14.0;
+  vec2  gridUV     = uv * gridScale;
+  vec2  gridCell   = floor(gridUV);
+  vec2  gridLocal  = fract(gridUV) - 0.5;
 
-    /* pseudo-random home position spread across the panel */
-    float hx = hash(fi) - 0.5;
-    float hy = hash(fi + 11.3) - 0.5;
+  /* stagger every other row */
+  float stagger = mod(gridCell.y, 2.0) * 0.5;
+  gridLocal.x += stagger;
+  gridCell.x  -= stagger;
 
-    /* gentle looping drift, each particle on its own phase */
-    float sp = 0.15 + hash(fi + 3.1) * 0.25;
-    vec2 pos = vec2(
-      hx * 1.15 + sin(time * sp + fi * 1.7) * 0.06,
-      hy * 0.95 + cos(time * sp * 0.8 + fi * 2.3) * 0.06
-    );
+  float dotRadius = 0.08 + 0.035 * sin(t * 1.7 + hash21(gridCell) * TAU);
+  float dot = 1.0 - smoothstep(dotRadius - 0.02, dotRadius + 0.02, length(gridLocal));
 
-    /* twinkle — biased bright so particles read strongly */
-    float tw = 0.7 + 0.3 * sin(time * 1.5 + fi * 2.4);
-    field += tw * smoothstep(particleSize, 0., length(uv - pos));
-  }
-  field = clamp(field * 1.35, 0., 1.);
+  /* gentle per-dot pulse */
+  float pulse = 0.55 + 0.45 * sin(t * 2.1 + hash21(gridCell + 7.3) * TAU);
+  dot *= pulse;
 
-  /* 4. Map to colour — single monotonic tint */
-  vec3 col = mix(vec3(0.), particleColor, field);
+  /* ── 3. Topology contour rings ─────────────────────────────── */
+  /* Layered smooth noise field used as elevation */
+  float field = 0.0;
+  vec2 q = uv * 1.8;
+  field += 0.50 * sin(q.x * 2.1 + t * 0.9) * cos(q.y * 1.7 - t * 0.7);
+  field += 0.30 * sin(q.x * 3.9 - t * 1.1 + q.y * 2.3);
+  field += 0.20 * cos(q.x * 1.2 + q.y * 3.1 + t * 0.6);
 
-  /* 5. Bayer ordered dither + quantise */
-  int bx = int(mod(gl_FragCoord.x / ps, 8.));
-  int by = int(mod(gl_FragCoord.y / ps, 8.));
-  float thr    = bayerValue(bx, by) - 0.5;
-  float levels = max(colorNum - 1., 1.);
-  col = clamp(col + thr / levels, 0., 1.);
-  col = floor(col * levels + 0.5) / levels;
+  /* Distance from origin adds slow outward-expanding rings */
+  float dist  = length(uv);
+  float rings = dist - t * 0.18;            /* slow outward drift */
+  float ringField = field * 0.35 + rings;
 
-  gl_FragColor = vec4(col, 1.);
+  /* Ring brightness — thin bright bands separated by dark gaps */
+  float ringFreq   = 4.5;
+  float ringPhase  = smod(ringField * ringFreq, 1.0);
+  float ring = smoothstep(0.0, 0.12, ringPhase) * smoothstep(1.0, 0.88, ringPhase);
+  ring = pow(ring, 1.4);
+
+  /* ── 4. Compose layers ─────────────────────────────────────── */
+  /* dots in grid colour, rings in accent, mixed */
+  vec3 col = vec3(0.);
+  col += gridColor * dot  * 0.55;
+  col += accentColor * ring * 0.45;
+
+  /* slight additive blend where both overlap */
+  col += gridColor * dot * ring * 0.25;
+
+  /* ── 5. Radial vignette ────────────────────────────────────── */
+  float vig = 1.0 - smoothstep(0.30, 0.90, dist * 1.35);
+  col *= vig;
+
+  /* ── 6. Very subtle global breathe ────────────────────────── */
+  col *= 0.80 + 0.20 * sin(t * 0.8);
+
+  gl_FragColor = vec4(clamp(col, 0., 1.), 1.);
 }
 `;
 
-/* ─── Inner R3F scene ─────────────────────────────────────────────────────── */
+/* ─── R3F scene ───────────────────────────────────────────────────────────── */
 
-function ParticleField({
-  particleColor,
-  colorNum,
-  pixelSize,
-  particleSize,
-}) {
+function TopologyField({ accentColor, gridColor }) {
   const matRef = useRef(null);
-  const { viewport, size, gl } = useThree();
+  const { viewport } = useThree();
 
-  useEffect(() => {
-    if (!matRef.current) return;
-    const dpr = gl.getPixelRatio();
-    matRef.current.uniforms.resolution.value.set(
-      size.width * dpr,
-      size.height * dpr,
-    );
-  }, [size, gl]);
-
-  useFrame(({ clock }) => {
+  useFrame(({ clock, size, gl }) => {
     const mat = matRef.current;
     if (!mat) return;
-    const u = mat.uniforms;
-
-    u.time.value = clock.getElapsedTime();
-    u.colorNum.value = colorNum;
-    u.pixelSize.value = pixelSize;
-    u.particleSize.value = particleSize;
-
     const dpr = gl.getPixelRatio();
-    const rw = size.width * dpr;
-    const rh = size.height * dpr;
-    if (u.resolution.value.x !== rw || u.resolution.value.y !== rh) {
-      u.resolution.value.set(rw, rh);
-    }
+    mat.uniforms.time.value        = clock.getElapsedTime();
+    mat.uniforms.resolution.value.set(size.width * dpr, size.height * dpr);
+    mat.uniforms.accentColor.value.set(...accentColor);
+    mat.uniforms.gridColor.value.set(...gridColor);
   });
 
-  const initialUniforms = useRef({
-    time:          { value: 0 },
-    resolution:    { value: new THREE.Vector2(1, 1) },
-    particleColor: { value: new THREE.Color(...particleColor) },
-    colorNum:      { value: colorNum },
-    pixelSize:     { value: pixelSize },
-    particleSize:  { value: particleSize },
+  const uniforms = useRef({
+    time:        { value: 0 },
+    resolution:  { value: new THREE.Vector2(1, 1) },
+    accentColor: { value: new THREE.Color(...accentColor) },
+    gridColor:   { value: new THREE.Color(...gridColor) },
   });
 
   return (
@@ -156,7 +140,7 @@ function ParticleField({
         ref={matRef}
         vertexShader={vertexShader}
         fragmentShader={fragmentShader}
-        uniforms={initialUniforms.current}
+        uniforms={uniforms.current}
       />
     </mesh>
   );
@@ -165,25 +149,20 @@ function ParticleField({
 /* ─── Public API ──────────────────────────────────────────────────────────── */
 
 export default function AboutField({
-  particleColor = [0.95, 0.95, 0.95],
-  colorNum      = 2,
-  pixelSize     = 3,
-  particleSize  = 0.05,
+  /* accent-red tint for the rings, muted white for the dot grid */
+  accentColor = [1.0, 0.23, 0.23],
+  gridColor   = [0.38, 0.38, 0.38],
 }) {
   return (
     <Canvas
       className="dither-container"
-      camera={{ position: [0, 0, 6] }}
+      camera={{ position: [0, 0, 1] }}
       frameloop="always"
       dpr={[1, 2]}
-      gl={{ antialias: false, alpha: false }}
+      gl={{ antialias: true, alpha: false }}
+      orthographic
     >
-      <ParticleField
-        particleColor={particleColor}
-        colorNum={colorNum}
-        pixelSize={pixelSize}
-        particleSize={particleSize}
-      />
+      <TopologyField accentColor={accentColor} gridColor={gridColor} />
     </Canvas>
   );
 }

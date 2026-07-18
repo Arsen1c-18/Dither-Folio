@@ -16,6 +16,7 @@ import {
 import { site, socials } from "@/constants/site";
 import { about } from "@/constants/content";
 import { Section } from "@/components/layout/Section";
+import { SectionReveal } from "@/components/fx/SectionReveal";
 
 /**
  * About — editorial narrative on the left, an interactive dithered-particle
@@ -32,11 +33,13 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 
 export function About() {
   return (
-    <Section id="about" index="01" title="About">
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-5 lg:gap-12">
-        <Narrative />
-        <TiltPanel />
-      </div>
+    <Section id="about" index="01" title="About" noChildReveal>
+      <SectionReveal>
+        <div className="grid grid-cols-1 gap-10 md:grid-cols-5 md:gap-12">
+          <Narrative />
+          <TiltPanel />
+        </div>
+      </SectionReveal>
     </Section>
   );
 }
@@ -62,7 +65,7 @@ function Narrative() {
 
   return (
     <motion.div
-      className="flex flex-col gap-6 lg:col-span-3"
+      className="flex flex-col gap-6 md:col-span-3"
       variants={container}
       initial="hidden"
       whileInView="show"
@@ -154,10 +157,10 @@ function TiltPanel() {
 
   return (
     <motion.div
-      className="lg:col-span-2"
+      className="md:col-span-2"
       initial={reduce ? false : { opacity: 0, y: 28, scale: 0.96 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
-      viewport={{ once: true, amount: 0.3 }}
+      viewport={{ once: true, amount: 0.1 }}
       transition={{ duration: 0.8, ease: EASE, delay: 0.1 }}
       style={{ perspective: 1000 }}
     >
@@ -165,7 +168,7 @@ function TiltPanel() {
         ref={ref}
         onPointerMove={handleMove}
         onPointerLeave={handleLeave}
-        className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-[var(--color-border-strong)] sm:aspect-[3/4] lg:aspect-auto lg:h-full lg:min-h-[26rem]"
+        className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-[var(--color-border-strong)] sm:aspect-[3/4] md:aspect-auto md:h-full md:min-h-[22rem] lg:min-h-[26rem]"
         style={{
           rotateX: reduce ? 0 : rotateX,
           rotateY: reduce ? 0 : rotateY,

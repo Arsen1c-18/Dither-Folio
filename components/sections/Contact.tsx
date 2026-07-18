@@ -40,12 +40,12 @@ export function Contact() {
       title="Contact"
       kicker="Have a project in mind? Let's make something great together."
     >
-      <div className="grid grid-cols-1 gap-10 lg:grid-cols-5">
+      <div className="grid grid-cols-1 gap-10 md:grid-cols-5">
         {/* Form — 3 / 5 */}
         <form
           ref={formRef}
           onSubmit={handleSubmit}
-          className="flex flex-col gap-5 lg:col-span-3"
+          className="flex flex-col gap-5 md:col-span-3"
         >
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field id="name" label="Name" type="text" placeholder="Jane Doe" required />
@@ -90,7 +90,7 @@ export function Contact() {
         </form>
 
         {/* Sidebar — 2 / 5 */}
-        <aside className="flex flex-col gap-8 lg:col-span-2">
+        <aside className="flex flex-col gap-8 md:col-span-2">
           <div className="flex flex-col gap-3">
             <span className="label-system text-[var(--color-subtle)]">Direct</span>
             <a

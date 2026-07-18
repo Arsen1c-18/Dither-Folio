@@ -10,6 +10,9 @@ interface SectionProps {
   /** Optional one-line kicker under the title. */
   kicker?: string;
   className?: string;
+  /** When true, children are rendered without the default Reveal wrapper
+   *  (use when the caller manages its own scroll entrance animation). */
+  noChildReveal?: boolean;
   children: React.ReactNode;
 }
 
@@ -17,7 +20,7 @@ interface SectionProps {
  * Consistent section shell: anchor id, gutter padding, and an optional
  * indexed header (matches the "Digital OS" label styling).
  */
-export function Section({ id, index, title, kicker, className, children }: SectionProps) {
+export function Section({ id, index, title, kicker, className, noChildReveal, children }: SectionProps) {
   return (
     <section id={id} className={cn("section-flow scroll-mt-20 py-24 sm:py-32", className)}>
       <div className="container-page">
@@ -44,7 +47,7 @@ export function Section({ id, index, title, kicker, className, children }: Secti
           </header>
           </Reveal>
         )}
-        <Reveal delay={0.08}>{children}</Reveal>
+        {noChildReveal ? children : <Reveal delay={0.08}>{children}</Reveal>}
       </div>
     </section>
   );

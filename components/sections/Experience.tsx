@@ -22,9 +22,9 @@ export function Experience() {
       title="Experience"
       kicker="A brief timeline of where I've worked and what I've built."
     >
-      <div className="flex flex-col gap-0 overflow-hidden rounded-2xl border border-[var(--color-border-strong)] lg:flex-row">
+      <div className="flex flex-col gap-0 overflow-hidden rounded-2xl border border-[var(--color-border-strong)] md:flex-row">
         {/* Sidebar — role list */}
-        <aside className="flex flex-row overflow-x-auto border-b border-[var(--color-border)] lg:w-56 lg:shrink-0 lg:flex-col lg:overflow-x-visible lg:border-b-0 lg:border-r">
+        <aside className="flex flex-row overflow-x-auto border-b border-[var(--color-border)] md:w-52 md:shrink-0 md:flex-col md:overflow-x-visible md:border-b-0 md:border-r">
           {experience.map((e) => (
             <button
               key={e.id}
@@ -53,7 +53,7 @@ export function Experience() {
         </aside>
 
         {/* Detail pane */}
-        <div className="relative flex flex-col gap-6 bg-[var(--color-surface-2)] p-6 sm:p-8 lg:flex-1">
+        <div className="relative flex flex-col gap-6 bg-[var(--color-surface-2)] p-6 sm:p-8 md:flex-1">
           {/* Decorative index */}
           <span
             aria-hidden
