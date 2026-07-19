@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import {
   motion,
@@ -10,18 +10,17 @@ import {
   useTransform,
   useReducedMotion,
   animate,
-  type Variants,
 } from "framer-motion";
 
 import { site, socials } from "@/constants/site";
 import { about } from "@/constants/content";
 import { Section } from "@/components/layout/Section";
-import { SectionReveal } from "@/components/fx/SectionReveal";
 
 /**
- * About — editorial narrative on the left, an interactive dithered-particle
- * panel on the right. The panel tilts in 3D toward the cursor while its inner
- * layers parallax against each other for depth.
+ * About — a full-screen "personnel dossier": blueprint grid backdrop,
+ * mono file header, line-numbered bio on the left, interactive
+ * dithered-particle identity panel on the right, and a NOW block +
+ * centered socials underneath.
  */
 
 // Client-only WebGL particle field (dithered), SSR-safe.
@@ -31,47 +30,115 @@ const AboutField = dynamic(() => import("@/components/fx/AboutField"), {
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
+// Edit these to update the NOW block (not dashboard-managed).
+const NOW = [
+  { label: "NOW", value: "Building scalable backend systems" },
+  { label: "LEARNING", value: "LLM infra & retrieval systems" },
+  { label: "OFF-HOURS", value: "PL theory papers & WebGL generative art" },
+];
+
 export function About() {
   return (
-    <Section id="about" noChildReveal>
-      <SectionReveal>
+    <Section
+      id="about"
+      noChildReveal
+      className="relative flex min-h-screen flex-col justify-center overflow-hidden py-16 sm:py-16"
+    >
+      <ArcBackdrop />
+
+      <div className="relative">
+        <DossierHeader />
+
         <div className="grid grid-cols-1 items-start gap-10 md:grid-cols-5 md:gap-12">
           <Narrative />
           <TiltPanel />
         </div>
-      </SectionReveal>
+
+        <NowBlock />
+        <SocialLinks />
+      </div>
     </Section>
   );
 }
 
-/* ─── Left: narrative ─────────────────────────────────────────────────────── */
+/* ─── Backdrop — sweeping arcs + faint section index, dial/instrument style ── */
+
+function ArcBackdrop() {
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden>
+      {/* Giant faint section index anchored off the right edge */}
+      <span
+        className="absolute -right-8 top-1/2 -translate-y-1/2 select-none font-display font-bold leading-none text-transparent"
+        style={{
+          fontSize: "clamp(16rem, 34vw, 30rem)",
+          WebkitTextStroke: "1px rgba(255,255,255,0.045)",
+        }}
+      >
+        01
+      </span>
+
+      {/* Concentric arc fragments sweeping in from the left, echoing the radial nav */}
+      <svg
+        className="absolute -left-[28rem] top-1/2 h-[56rem] w-[56rem] -translate-y-1/2"
+        viewBox="0 0 800 800"
+        fill="none"
+      >
+        <circle cx="400" cy="400" r="396" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+        <circle
+          cx="400" cy="400" r="330"
+          stroke="rgba(255,255,255,0.04)" strokeWidth="1"
+          strokeDasharray="4 14"
+        />
+        <circle cx="400" cy="400" r="230" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+        {/* Accent arc segment */}
+        <path
+          d="M 400 4 A 396 396 0 0 1 740 200"
+          stroke="var(--color-accent)" strokeWidth="1" opacity="0.25"
+        />
+        {/* Tick marks on the outer ring */}
+        {Array.from({ length: 24 }).map((_, i) => {
+          const a = (i / 24) * Math.PI * 2;
+          const x1 = 400 + Math.cos(a) * 388, y1 = 400 + Math.sin(a) * 388;
+          const x2 = 400 + Math.cos(a) * 396, y2 = 400 + Math.sin(a) * 396;
+          return (
+            <line
+              key={i} x1={x1} y1={y1} x2={x2} y2={y2}
+              stroke="rgba(255,255,255,0.10)" strokeWidth="1"
+            />
+          );
+        })}
+      </svg>
+    </div>
+  );
+}
+
+/* ─── Dossier file header ─────────────────────────────────────────────────── */
+
+function DossierHeader() {
+  return (
+    <div className="mb-10 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-y border-[var(--color-border-strong)] py-2.5 font-mono text-[0.65rem] tracking-[0.15em] text-[var(--color-subtle)] md:mb-14">
+      <span>
+        FILE: <span className="text-[var(--color-foreground)]">ABOUT.MD</span>
+      </span>
+      <span className="hidden sm:inline">LOC: {site.location.toUpperCase()}</span>
+      <span className="hidden md:inline">ROLE: {site.role.toUpperCase()}</span>
+      <span className="flex items-center gap-2">
+        STATUS:
+        <span className="flex items-center gap-1.5 text-[var(--color-accent)]">
+          <span className="size-1 rounded-full bg-[var(--color-accent)] animate-pulse" />
+          {site.available ? "OPEN TO WORK" : "BOOKED"}
+        </span>
+      </span>
+    </div>
+  );
+}
+
+/* ─── Left: line-numbered narrative ───────────────────────────────────────── */
 
 function Narrative() {
-  const reduce = useReducedMotion();
-
-  const container: Variants = {
-    hidden: {},
-    show: { transition: { staggerChildren: 0.12 } },
-  };
-  const item: Variants = {
-    hidden: reduce ? {} : { opacity: 0, y: 24, filter: "blur(8px)" },
-    show: {
-      opacity: 1,
-      y: 0,
-      filter: "blur(0px)",
-      transition: { duration: 0.7, ease: EASE },
-    },
-  };
-
   return (
-    <motion.div
-      className="flex flex-col gap-6 md:col-span-3 md:mt-24 lg:mt-32"
-      variants={container}
-      initial="hidden"
-      whileInView="show"
-      viewport={{ once: true, amount: 0.2 }}
-    >
-      <motion.header variants={item} className="mb-2 flex flex-col gap-3 md:mb-6">
+    <div className="flex flex-col gap-6 md:col-span-3">
+      <header className="mb-2 flex flex-col gap-3 md:mb-4">
         <span className="label-system flex items-center gap-2">
           <span className="text-[var(--color-accent)]">01</span>
           <span className="h-px w-8 bg-[var(--color-border-strong)]" />
@@ -80,63 +147,112 @@ function Narrative() {
         <h2 className="font-display text-3xl font-medium tracking-tight text-[var(--color-foreground)] sm:text-5xl">
           About
         </h2>
-      </motion.header>
+      </header>
+
       {about.bio.map((paragraph, i) => (
-        <motion.p
-          key={i}
-          variants={item}
-          className="text-balance text-base leading-relaxed text-[var(--color-muted)] sm:text-lg"
-        >
-          {renderBio(paragraph, site.name)}
-        </motion.p>
-      ))}
-
-      {/* Compact meta line keeps identity present without a heavy table */}
-      <motion.div
-        variants={item}
-        className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 label-system text-[var(--color-subtle)]"
-      >
-        <span>{site.location}</span>
-        <span className="text-[var(--color-faint)]">/</span>
-        <span>{site.role}</span>
-        <span className="text-[var(--color-faint)]">/</span>
-        <span className="flex items-center gap-1.5 text-[var(--color-muted)]">
-          <span className="inline-block size-1.5 rounded-full bg-[var(--color-online)]" />
-          {site.available ? "Available for work" : "Currently booked"}
-        </span>
-      </motion.div>
-
-      <motion.div variants={item} className="mt-2 flex flex-wrap gap-3">
-        {socials.map((s) => (
-          <a
-            key={s.label}
-            href={s.href}
-            target="_blank"
-            rel="noreferrer"
-            className="group flex items-center gap-2 rounded-full border border-[var(--color-border-strong)] px-4 py-2 text-xs text-[var(--color-muted)] transition-all hover:border-[var(--color-foreground)] hover:text-[var(--color-foreground)]"
+        <div key={i} className="flex gap-4">
+          <span
+            className="select-none pt-1 font-mono text-[0.65rem] leading-relaxed text-[var(--color-faint)]"
+            aria-hidden
           >
-            <span className="label-system w-12">{s.label}</span>
-            <span className="text-[var(--color-subtle)] transition-colors group-hover:text-[var(--color-accent)]">
-              {s.handle}
-            </span>
-          </a>
-        ))}
-        <a
-          href={site.resumeUrl}
-          className="flex items-center gap-2 rounded-full bg-[var(--color-accent)] px-4 py-2 text-xs font-medium text-[#050505] transition-colors hover:bg-[var(--color-accent-bright)]"
+            {String(i + 1).padStart(2, "0")}
+          </span>
+          <p className="text-balance text-base leading-relaxed text-[var(--color-muted)] sm:text-lg">
+            {renderBio(paragraph, site.name)}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── NOW block — current focus, mono dossier styling ─────────────────────── */
+
+function NowBlock() {
+  return (
+    <div className="mt-12 grid grid-cols-1 gap-4 border-t border-[var(--color-border)] pt-8 sm:grid-cols-3 md:mt-16">
+      {NOW.map((item, i) => (
+        <div
+          key={item.label}
+          className={`flex flex-col gap-1.5 ${
+            i === 1
+              ? "sm:items-center sm:text-center"
+              : i === NOW.length - 1
+                ? "sm:items-end sm:text-right"
+                : ""
+          }`}
         >
-          Resume ↗
+          <span className="label-system text-[0.6rem] text-[var(--color-accent)]">
+            {item.label}
+          </span>
+          <span className="font-mono text-sm text-[var(--color-muted)]">
+            {item.value}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Socials + resume — centered under everything ────────────────────────── */
+
+function SocialLinks() {
+  return (
+    <div className="mt-10 flex flex-wrap items-center justify-center gap-3 md:mt-12">
+      {socials.map((s) => (
+        <a
+          key={s.label}
+          href={s.href}
+          target="_blank"
+          rel="noreferrer"
+          className="group flex items-center gap-2 rounded-full border border-[var(--color-border-strong)] px-4 py-2 text-xs text-[var(--color-muted)] transition-all hover:border-[var(--color-foreground)] hover:text-[var(--color-foreground)]"
+        >
+          <span className="label-system w-12">{s.label}</span>
+          <span className="text-[var(--color-subtle)] transition-colors group-hover:text-[var(--color-accent)]">
+            {s.handle}
+          </span>
         </a>
-      </motion.div>
-    </motion.div>
+      ))}
+      <a
+        href={site.resumeUrl}
+        className="flex items-center gap-2 rounded-full bg-[var(--color-accent)] px-4 py-2 text-xs font-medium text-[#050505] transition-colors hover:bg-[var(--color-accent-bright)]"
+      >
+        Resume ↗
+      </a>
+    </div>
   );
 }
 
 /* ─── Right: interactive tilt panel ───────────────────────────────────────── */
 
+// Drop your photo at public/me.jpg (or change this path). The card shows it
+// dithered on hover; if the file is missing the hover layer simply stays off.
+const PORTRAIT_SRC = "/me.png";
+
+// Bayer-style checker tile — overlaid on the photo to fake an ordered dither
+const DITHER_TILE = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='4' height='4'><rect width='1' height='1' x='0' y='0' fill='black'/><rect width='1' height='1' x='2' y='2' fill='black'/><rect width='1' height='1' x='2' y='0' fill='black' opacity='0.5'/><rect width='1' height='1' x='0' y='2' fill='black' opacity='0.5'/></svg>")`;
+
+// Blend mask: radial core intersected with per-edge linear fades so all
+// four sides of the photo dim out evenly into the field
+const PORTRAIT_MASK = [
+  "radial-gradient(46% 44% at 50% 42%, black 28%, rgba(0,0,0,0.55) 58%, transparent 85%)",
+  "linear-gradient(to bottom, transparent 12%, black 32%, black 68%, transparent 88%)",
+  "linear-gradient(to right, transparent 18%, black 36%, black 64%, transparent 82%)",
+].join(", ");
+const PORTRAIT_MASK_COMPOSITE = "intersect";
+
 function TiltPanel() {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
+  const [hovered, setHovered] = useState(false);
+  const [portraitOk, setPortraitOk] = useState(false);
+
+  // Probe for the portrait once so a missing file never flashes a broken image.
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setPortraitOk(true);
+    img.src = PORTRAIT_SRC;
+  }, []);
 
   // Pointer position, normalised to [-0.5, 0.5] over the card.
   const px = useMotionValue(0);
@@ -161,13 +277,14 @@ function TiltPanel() {
   }
 
   function handleLeave() {
+    setHovered(false);
     animate(px, 0, { duration: 0.6, ease: EASE });
     animate(py, 0, { duration: 0.6, ease: EASE });
   }
 
   return (
     <motion.div
-      className="md:col-span-2 md:mt-24 lg:mt-32 md:h-[22rem] lg:h-[26rem]"
+      className="md:col-span-2 md:h-[22rem] lg:h-[26rem]"
       initial={reduce ? false : { opacity: 0, y: 28, scale: 0.96 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, amount: 0.1 }}
@@ -177,6 +294,7 @@ function TiltPanel() {
       <motion.div
         ref={ref}
         onPointerMove={handleMove}
+        onPointerEnter={() => setHovered(true)}
         onPointerLeave={handleLeave}
         className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-[var(--color-border-strong)] sm:aspect-[3/4] md:aspect-auto md:h-full md:min-h-[22rem] lg:min-h-[26rem]"
         style={{
@@ -197,6 +315,45 @@ function TiltPanel() {
         >
           <AboutField />
         </motion.div>
+
+        {/* Dithered portrait — dissolves into the field on hover */}
+        {portraitOk && (
+          <motion.div
+            aria-hidden
+            className="absolute inset-0"
+            initial={false}
+            animate={{ opacity: hovered ? 1 : 0 }}
+            transition={{ duration: 0.6, ease: EASE }}
+            style={{ translateZ: -20 }}
+          >
+            <div
+              className={`absolute inset-0 ${reduce ? "" : "portrait-jitter"}`}
+              style={{
+                backgroundImage: `url(${PORTRAIT_SRC})`,
+                backgroundSize: "auto 62%",
+                backgroundPosition: "center 42%",
+                backgroundRepeat: "no-repeat",
+                maskImage: PORTRAIT_MASK,
+                WebkitMaskImage: PORTRAIT_MASK,
+                maskComposite: PORTRAIT_MASK_COMPOSITE,
+                WebkitMaskComposite: "source-in",
+                mixBlendMode: "lighten",
+              }}
+            />
+            {/* Dither texture — 1px stepped jitter makes it constantly re-rasterize */}
+            <div
+              className={`absolute inset-0 opacity-50 ${reduce ? "" : "dither-flicker"}`}
+              style={{
+                backgroundImage: DITHER_TILE,
+                backgroundSize: "4px 4px",
+                maskImage: PORTRAIT_MASK,
+                WebkitMaskImage: PORTRAIT_MASK,
+                maskComposite: PORTRAIT_MASK_COMPOSITE,
+                WebkitMaskComposite: "source-in",
+              }}
+            />
+          </motion.div>
+        )}
 
         {/* Legibility scrim */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_100%_at_50%_0%,rgba(5,5,5,0.35),rgba(5,5,5,0.82))]" />

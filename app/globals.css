@@ -202,6 +202,37 @@
   }
 }
 
+/* ── Portrait dither flicker (About card hover) ─────────────────── */
+
+/* Nudges the ordered-dither tile around by single pixels with stepped
+   timing — the pattern "re-rasterizes" constantly, like live dithering */
+@keyframes dither-flicker {
+  0%   { background-position: 0px 0px; }
+  25%  { background-position: 1px 0px; }
+  50%  { background-position: 1px 1px; }
+  75%  { background-position: 0px 1px; }
+  100% { background-position: 0px 0px; }
+}
+
+.dither-flicker {
+  animation: dither-flicker 0.25s steps(1, end) infinite;
+}
+
+/* Tiny stepped jitter for the portrait itself — sub-pixel restlessness,
+   like the image is being re-dithered each frame */
+@keyframes portrait-jitter {
+  0%   { transform: translate(0, 0); }
+  20%  { transform: translate(0.5px, 0); }
+  40%  { transform: translate(0.5px, -0.5px); }
+  60%  { transform: translate(-0.5px, 0.5px); }
+  80%  { transform: translate(0, -0.5px); }
+  100% { transform: translate(0, 0); }
+}
+
+.portrait-jitter {
+  animation: portrait-jitter 0.3s steps(1, end) infinite;
+}
+
 /* Respect reduced-motion globally as a safety net */
 @media (prefers-reduced-motion: reduce) {
   *,

@@ -1,123 +1,460 @@
 "use client";
 
-import { useState } from "react";
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useMotionValueEvent,
+  useReducedMotion,
+  type MotionValue,
+} from "framer-motion";
 import { projects } from "@/constants/content";
-import { Section } from "@/components/layout/Section";
-import type { ProjectCategory } from "@/types";
-import { cn } from "@/lib/utils";
 
-const CATEGORIES: { label: string; value: ProjectCategory | "all" }[] = [
-  { label: "All", value: "all" },
-  { label: "AI / ML", value: "ai-ml" },
-  { label: "Web Apps", value: "web-apps" },
-  { label: "Tools", value: "tools" },
-];
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 /**
- * Projects — filterable card grid. A monospace category filter bar sits above
- * the grid; active filter is highlighted in accent-red. Cards use a subtle
- * gradient border that brightens on hover.
+ * Projects — a rigid 3D drum wheel, dossier-styled, rendered with a
+ * CYLINDRICAL projection: perspective applies to the horizontal axis only.
+ *
+ * Every card sits at a fixed slot on the drum (vertical axis, 360°/N
+ * apart) and scroll rotates the drum — one angle drives everything, so
+ * card-to-card relationships are rigid by construction. But instead of the
+ * browser's 3D camera (whose keystone warps a turned card's vertical
+ * edges), the wheel geometry is projected in code:
+ *
+ *   θ = rel·STEP   c = cosθ, s = sinθ
+ *   depth  d = R·(1−c)            — how far behind the focus plane
+ *   persp  f = P/(P+d)            — horizontal perspective divide
+ *   x      = R·s·f                — slides sideways, converging with depth
+ *   scaleX = c·f                  — facet turn × depth foreshortening
+ *   scaleY = 1, always            — height NEVER changes
+ *
+ * So cards recede, narrow, and bunch toward the sides exactly as a 3D
+ * wheel's rim does, but their top and bottom edges stay perfectly
+ * horizontal and their height constant — no keystone, no vertical drift,
+ * by construction. scaleX goes NEGATIVE past 90°: the card is facing away
+ * and shows its (pre-mirrored) back face, so a full revolution reads
+ * correctly — the wheel is CLOSED, and past the last card the first one
+ * comes round again from behind, back face first. Driven directly by
+ * scroll progress (Lenis provides the smoothing) — no detent, no spring.
  */
-export function Projects() {
-  const [filter, setFilter] = useState<ProjectCategory | "all">("all");
-  const reduceMotion = useReducedMotion();
 
-  const visible =
-    filter === "all" ? projects : projects.filter((p) => p.category === filter);
+type Project = (typeof projects)[number];
+
+// Slots on the closed wheel — one per project, 360°/N apart
+const SLOTS = projects.length;
+const STEP_DEG = 360 / SLOTS;
+// Wheel radius and camera distance, both in vw (units must match for the
+// perspective divide). P close to R = strong depth; larger P = longer lens.
+const RADIUS_VW = 60;
+const CAMERA_VW = 110;
+
+// Signed slot distance, wrapped to the nearest way round the wheel
+const wrap = (r: number) => {
+  const m = ((r % SLOTS) + SLOTS) % SLOTS;
+  return m > SLOTS / 2 ? m - SLOTS : m;
+};
+// Wheel geometry for a wrapped slot distance
+const geom = (r: number) => {
+  const t = (r * STEP_DEG * Math.PI) / 180;
+  const c = Math.cos(t);
+  const f = CAMERA_VW / (CAMERA_VW + RADIUS_VW * (1 - c));
+  return { c, s: Math.sin(t), f };
+};
+
+// Same soft mask used on Experience snapshots — image dissolves into the panel
+const IMAGE_MASK =
+  "radial-gradient(90% 90% at 50% 50%, black 55%, transparent 100%)";
+
+/* ─── Single card on the strip ────────────────────────────────────────────── */
+
+function StripCard({
+  project,
+  idx,
+  stripIndex,
+}: {
+  project: Project;
+  idx: number;
+  stripIndex: MotionValue<number>;
+}) {
+  // Slots away from the focused card, wrapped round the closed wheel
+  // (0 = centred). Everything below derives from this one value through
+  // the wheel geometry — nothing else animates.
+  const rel = useTransform(stripIndex, (i: number) => wrap(idx - i));
+
+  // Cylindrical projection (see header): horizontal position with the
+  // perspective divide applied to x only.
+  const x = useTransform(rel, (r: number) => {
+    const g = geom(r);
+    return `${RADIUS_VW * g.s * g.f}vw`;
+  });
+  // Facet turn × depth foreshortening. Negative past 90° — the card faces
+  // away and renders mirrored, i.e. seen from behind.
+  const scaleX = useTransform(rel, (r: number) => {
+    const g = geom(r);
+    const v = g.c * g.f;
+    // Never exactly 0 — keep the element renderable edge-on
+    return Math.abs(v) < 0.001 ? 0.001 : v;
+  });
+
+  // Nearer cards layer above farther ones — f decreases with depth
+  const zIndex = useTransform(rel, (r: number) => Math.round(geom(r).f * 100));
+
+  // Which side of the card faces the viewer
+  const frontVisibility = useTransform(rel, (r: number) =>
+    geom(r).c >= 0 ? "visible" : "hidden",
+  );
+  const backVisibility = useTransform(rel, (r: number) =>
+    geom(r).c < 0 ? "visible" : "hidden",
+  );
+
+  // Side and rear cards dim so the focused record reads first
+  const opacity = useTransform(rel, [-1, 0, 1], [0.55, 1, 0.55]);
+  const pointerEvents = useTransform(rel, (r: number) =>
+    Math.abs(r) < 0.4 ? "auto" : "none",
+  );
 
   return (
-    <Section
-      id="projects"
-      index="03"
-      title="Projects"
-      kicker="Selected work — click any card to explore the source or demo."
+    <motion.div
+      style={{
+        x,
+        scaleX,
+        // scaleY is deliberately untouched: height is constant, edges stay
+        // horizontal — the wheel's depth lives entirely in x and scaleX
+        opacity,
+        zIndex,
+        pointerEvents,
+      }}
+      className="absolute h-[52vh] max-h-[30rem] w-[62vw] max-w-2xl"
     >
-      {/* Filter bar */}
-      <div className="mb-8 flex flex-wrap gap-2">
-        {CATEGORIES.map((c) => (
-          <button
-            key={c.value}
-            onClick={() => setFilter(c.value)}
-            className={cn(
-              "rounded-full border px-4 py-1.5 text-xs transition-all",
-              filter === c.value
-                ? "border-[var(--color-accent)] bg-[var(--color-accent)] text-[#050505]"
-                : "border-[var(--color-border-strong)] text-[var(--color-muted)] hover:border-[var(--color-foreground)] hover:text-[var(--color-foreground)]",
-            )}
-          >
-            {c.label}
-          </button>
-        ))}
-      </div>
+      {/* ── Back face — what shows while the card rides the far side of
+          the drum (scaleX < 0 mirrors the element; the inner scaleX(-1)
+          un-mirrors the stamp so it reads correctly). ── */}
+      <motion.div
+        aria-hidden
+        style={{ visibility: backVisibility }}
+        className="absolute inset-0 flex items-center justify-center overflow-hidden border border-[var(--color-border-strong)] bg-[var(--color-surface)]/95"
+      >
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage: `linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)`,
+            backgroundSize: "24px 24px",
+          }}
+        />
+        <span
+          style={{ transform: "scaleX(-1)" }}
+          className="select-none font-mono text-[0.62rem] uppercase tracking-[0.3em] text-[var(--color-faint)]"
+        >
+          PROJ_{String(idx + 1).padStart(2, "0")} // reverse
+        </span>
+      </motion.div>
 
-      {/* Card grid */}
-      <motion.ul layout className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2">
-        <AnimatePresence mode="popLayout">
-        {visible.map((project, i) => (
-          <motion.li
-            layout
-            key={project.id}
-            initial={reduceMotion ? false : { opacity: 0, y: 18, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={reduceMotion ? {} : { opacity: 0, y: 10, scale: 0.98 }}
-            transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      {/* ── Front face ── */}
+      <motion.div
+        style={{ visibility: frontVisibility }}
+        className="group relative flex h-full w-full overflow-hidden border border-[var(--color-border-strong)] bg-[var(--color-surface)]/95 backdrop-blur-xl transition-colors duration-300 hover:border-[var(--color-accent)]/40"
+      >
+        {/* Ghost year, bottom-left of the text side */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -bottom-7 left-4 select-none font-display text-[8rem] font-bold leading-none text-transparent"
+          style={{ WebkitTextStroke: "1px rgba(255,255,255,0.045)" }}
+        >
+          {project.year}
+        </span>
+
+        {/* ── Left: record details ── */}
+        <div className="relative z-10 flex w-[55%] flex-col p-7 sm:p-8">
+          {/* Record strip */}
+          <div className="flex items-center justify-between border-b border-[var(--color-border)] pb-2.5 font-mono text-[0.62rem] tracking-[0.16em] text-[var(--color-subtle)]">
+            <span className="flex items-center gap-3">
+              <span className="text-[var(--color-accent)]">
+                PROJ_{String(idx + 1).padStart(2, "0")}
+              </span>
+              <span className="uppercase">{project.year}</span>
+            </span>
+            <span className="uppercase">
+              {project.category.replace("-", " / ")}
+            </span>
+          </div>
+
+          <h3 className="mt-5 font-display text-3xl font-medium tracking-tight text-[var(--color-foreground)] transition-colors duration-300 group-hover:text-[var(--color-accent)] sm:text-4xl">
+            {project.title}
+            <span className="text-[var(--color-accent)]">.</span>
+          </h3>
+
+          <p className="mt-4 max-w-md text-sm leading-relaxed text-[var(--color-muted)]">
+            {project.description}
+          </p>
+
+          {/* Stack */}
+          <ul className="mt-5 flex flex-wrap gap-x-3 gap-y-1.5 font-mono text-[0.65rem] tracking-[0.05em] text-[var(--color-muted)]">
+            {project.stack.map((tag) => (
+              <li key={tag}>
+                <span className="text-[var(--color-faint)]">[</span>
+                {tag}
+                <span className="text-[var(--color-faint)]">]</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* Link */}
+          <a
+            href={project.href ?? "#"}
+            target="_blank"
+            rel="noreferrer"
+            className="group/link mt-auto inline-flex w-fit items-center gap-3 border border-[var(--color-border-strong)] px-4 py-2 font-mono text-[0.62rem] uppercase tracking-[0.18em] text-[var(--color-muted)] transition-colors duration-300 hover:border-[var(--color-accent)]/60 hover:text-[var(--color-foreground)]"
           >
+            View project
+            <span className="text-[var(--color-subtle)] transition-all duration-300 group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5 group-hover/link:text-[var(--color-accent)]">
+              ↗
+            </span>
+          </a>
+        </div>
+
+        {/* ── Right: image panel, folded back about its (vertical) left edge
+            so the card reads as wrapping around the wheel ── */}
+        <div
+          style={{
+            transform: "rotateY(-14deg)",
+            transformOrigin: "left center",
+          }}
+          className="absolute inset-y-0 right-0 z-0 w-[45%] transform-gpu overflow-hidden border-l border-[var(--color-border)] bg-black/40"
+        >
+          <ProjectImage project={project} idx={idx} />
+          {/* Blend the fold edge into the card */}
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--color-bg)]/80 via-transparent to-transparent" />
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+/* ─── Image with blueprint-grid fallback ──────────────────────────────────── */
+
+function ProjectImage({ project, idx }: { project: Project; idx: number }) {
+  const [imageOk, setImageOk] = useState(false);
+  const src = `/projects/${project.id}.png`;
+
+  // Probe once so a missing file never flashes a broken image
+  useEffect(() => {
+    const img = new Image();
+    img.onload = () => setImageOk(true);
+    img.src = src;
+  }, [src]);
+
+  return (
+    <div className="relative h-full w-full">
+      {/* Blueprint grid, always present as the panel floor */}
+      <div
+        aria-hidden
+        className="absolute inset-0 opacity-[0.04]"
+        style={{
+          backgroundImage: `linear-gradient(rgba(255,255,255,0.6) 1px, transparent 1px),
+                            linear-gradient(90deg, rgba(255,255,255,0.6) 1px, transparent 1px)`,
+          backgroundSize: "24px 24px",
+        }}
+      />
+
+      {imageOk ? (
+        <div
+          className="absolute inset-0 bg-cover bg-center"
+          style={{
+            backgroundImage: `url(${src})`,
+            maskImage: IMAGE_MASK,
+            WebkitMaskImage: IMAGE_MASK,
+            mixBlendMode: "lighten",
+            opacity: 0.9,
+          }}
+        />
+      ) : (
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span
+            aria-hidden
+            className="select-none font-display text-8xl font-medium tracking-tight text-[var(--color-foreground)]/10"
+          >
+            {String(idx + 1).padStart(2, "0")}
+          </span>
+        </div>
+      )}
+
+      {/* Caption strip */}
+      <span
+        aria-hidden
+        className="absolute bottom-3 left-4 font-mono text-[0.58rem] uppercase tracking-[0.18em] text-[var(--color-faint)]"
+      >
+        FIG. {String(idx + 1).padStart(2, "0")}
+      </span>
+    </div>
+  );
+}
+
+/* ─── Section ─────────────────────────────────────────────────────────────── */
+
+export function Projects() {
+  const reduceMotion = useReducedMotion();
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end end"],
+  });
+
+  // Direct drive: scroll progress maps linearly onto the wheel — no detent,
+  // no spring. Lenis already smooths the scroll itself, so the wheel turns
+  // exactly with the scrollbar and stops the moment you stop. The range is
+  // a FULL revolution (SLOTS steps): the last stretch turns the wheel from
+  // the last card back to the first, which comes round from behind — back
+  // face first, flipping to front as it passes edge-on.
+  const stripIndex = useTransform(scrollYProgress, (p: number) => p * SLOTS);
+
+  // Counter + progress rail track the nearest record, wrapped to the wheel
+  const [active, setActive] = useState(0);
+  useMotionValueEvent(stripIndex, "change", (i) =>
+    setActive(((Math.round(i) % SLOTS) + SLOTS) % SLOTS),
+  );
+  const railScale = useTransform(
+    stripIndex,
+    [0, SLOTS - 1],
+    [1 / SLOTS, 1],
+    { clamp: true },
+  );
+
+  return (
+    <section
+      ref={containerRef}
+      id="projects"
+      // One viewport of scroll per wheel step — SLOTS steps for the full
+      // revolution, plus the sticky viewport itself
+      className="relative z-20 h-auto scroll-mt-20 md:h-[var(--strip-h)]"
+      style={{ "--strip-h": `${(SLOTS + 1) * 100}vh` } as React.CSSProperties}
+    >
+      {/* Sticky full-screen stage (desktop) / normal flow (mobile) */}
+      <div className="relative flex h-auto w-full flex-col overflow-visible py-16 md:sticky md:top-0 md:h-screen md:overflow-hidden md:py-0">
+        {/* Ghost section index */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -right-10 top-16 select-none font-display font-bold leading-none text-transparent"
+          style={{
+            fontSize: "clamp(14rem, 30vw, 26rem)",
+            WebkitTextStroke: "1px rgba(255,255,255,0.04)",
+          }}
+        >
+          03
+        </span>
+
+        {/* Header */}
+        <div className="container-page relative z-30 mb-8 flex w-full items-end justify-between md:pt-14 lg:pt-16">
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7, ease: EASE }}
+            className="flex flex-col gap-3"
+          >
+            <span className="label-system flex items-center gap-2">
+              <span className="text-[var(--color-accent)]">03</span>
+              <span className="h-px w-8 bg-[var(--color-border-strong)]" />
+              work
+            </span>
+            <h2 className="font-display text-5xl font-medium tracking-tight sm:text-6xl">
+              Projects<span className="text-[var(--color-accent)]">.</span>
+            </h2>
+          </motion.div>
+
+          {/* Counter + rail, desktop only */}
+          <motion.div
+            initial={reduceMotion ? false : { opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, ease: EASE, delay: 0.2 }}
+            className="hidden flex-col items-end gap-2 md:flex"
+          >
+            <span className="flex items-center gap-2 font-mono text-[0.65rem] tracking-[0.18em] text-[var(--color-subtle)]">
+              <span className="text-[var(--color-accent)]">
+                {String(active + 1).padStart(2, "0")}
+              </span>
+              / {String(projects.length).padStart(2, "0")}
+            </span>
+            <span className="relative block h-px w-24 bg-[var(--color-border)]">
+              <motion.span
+                className="absolute inset-0 origin-left bg-[var(--color-accent)]"
+                style={{ scaleX: railScale }}
+              />
+            </span>
+          </motion.div>
+        </div>
+
+        {/* The wheel stage (desktop) — flat compositing; the cylindrical
+            projection is computed per card (x + scaleX only), so no CSS
+            camera exists to introduce vertical keystone. */}
+        <div className="relative hidden min-h-0 w-full flex-1 items-center justify-center overflow-hidden md:flex">
+          {/* Dashed horizontal track behind the cards */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute left-0 right-0 top-1/2 border-t border-dashed border-[var(--color-border)] opacity-40"
+          />
+
+          {projects.map((project, idx) => (
+            <StripCard
+              key={project.id}
+              project={project}
+              idx={idx}
+              stripIndex={stripIndex}
+            />
+          ))}
+        </div>
+
+        {/* Mobile: vertical stack */}
+        <div className="container-page relative z-20 flex flex-col gap-6 md:hidden">
+          {projects.map((project, idx) => (
             <a
+              key={project.id}
               href={project.href ?? "#"}
               target="_blank"
               rel="noreferrer"
-              className={cn(
-                "group relative flex h-full flex-col gap-5 overflow-hidden rounded-2xl border p-6 transition-all duration-300",
-                "border-[var(--color-border)] bg-[var(--color-surface-2)]",
-                "hover:border-[var(--color-border-strong)] hover:bg-[var(--color-elevated)]",
-              )}
+              className="group relative flex flex-col gap-4 overflow-hidden border border-[var(--color-border-strong)] bg-[var(--color-surface)]/95 p-6"
             >
-              {/* Hover glow */}
-              <span
-                aria-hidden
-                className="pointer-events-none absolute -inset-px rounded-2xl opacity-0 transition-opacity duration-500 group-hover:opacity-100"
-                style={{
-                  background:
-                    "radial-gradient(400px at 50% 0%, rgba(255,59,59,0.06), transparent 70%)",
-                }}
-              />
-
-              {/* Header */}
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex flex-col gap-1">
-                  <span className="label-system text-[var(--color-accent)]">
-                    {String(i + 1).padStart(2, "0")} — {project.year}
+              <div className="flex items-center justify-between font-mono text-[0.62rem] tracking-[0.16em] text-[var(--color-subtle)]">
+                <span className="flex items-center gap-3">
+                  <span className="text-[var(--color-accent)]">
+                    PROJ_{String(idx + 1).padStart(2, "0")}
                   </span>
-                  <h3 className="font-display text-xl font-medium tracking-tight">
-                    {project.title}
-                  </h3>
-                </div>
-                <span className="mt-1 shrink-0 text-[var(--color-subtle)] transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-[var(--color-foreground)]">
+                  <span className="uppercase">{project.year}</span>
+                </span>
+                <span className="text-[var(--color-subtle)] transition-colors duration-300 group-hover:text-[var(--color-accent)]">
                   ↗
                 </span>
               </div>
 
-              <p className="flex-1 text-sm leading-relaxed text-[var(--color-muted)]">
-                {project.description}
-              </p>
+              <div>
+                <h3 className="font-display text-2xl font-medium tracking-tight text-[var(--color-foreground)]">
+                  {project.title}
+                </h3>
+                <p className="mt-1 font-mono text-[0.65rem] uppercase tracking-[0.15em] text-[var(--color-accent)]">
+                  {project.category.replace("-", " / ")}
+                </p>
+                <p className="mt-3 text-sm leading-relaxed text-[var(--color-muted)]">
+                  {project.description}
+                </p>
+              </div>
 
-              {/* Stack tags */}
-              <ul className="flex flex-wrap gap-1.5">
+              <ul className="flex flex-wrap gap-x-3 gap-y-1.5 font-mono text-[0.65rem] tracking-[0.05em] text-[var(--color-muted)]">
                 {project.stack.map((tag) => (
-                  <li
-                    key={tag}
-                    className="rounded-md border border-[var(--color-border)] bg-[var(--color-surface)] px-2.5 py-1 font-mono text-[0.6875rem] text-[var(--color-subtle)]"
-                  >
+                  <li key={tag}>
+                    <span className="text-[var(--color-faint)]">[</span>
                     {tag}
+                    <span className="text-[var(--color-faint)]">]</span>
                   </li>
                 ))}
               </ul>
             </a>
-          </motion.li>
-        ))}
-        </AnimatePresence>
-      </motion.ul>
-    </Section>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }

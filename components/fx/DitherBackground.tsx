@@ -18,6 +18,12 @@ type DitherProps = {
   disableAnimation?: boolean;
   enableMouseInteraction?: boolean;
   mouseRadius?: number;
+  /**
+   * Anchor the wave field to the top-left instead of the centre so the
+   * pattern stays put when the container's height changes (e.g. expanding
+   * cards) — only newly revealed area at the bottom gets new field.
+   */
+  anchorTop?: boolean;
 };
 
 const Dither = dynamic(

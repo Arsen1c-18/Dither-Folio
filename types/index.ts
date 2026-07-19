@@ -16,8 +16,12 @@ export interface ExperienceItem {
   role: string;
   org: string;
   period: string;
+  /** Human-readable length of the stint, e.g. "6 months". */
+  duration?: string;
   current?: boolean;
   summary: string;
+  /** Skills developed during this role, rendered as chips. */
+  skills?: string[];
 }
 
 export type ProjectCategory = "ai-ml" | "web-apps" | "tools";

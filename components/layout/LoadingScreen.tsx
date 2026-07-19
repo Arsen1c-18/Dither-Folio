@@ -10,7 +10,7 @@ export function LoadingScreen() {
 
   useEffect(() => {
     // Smooth counter for the progress bar
-    const duration = 5000;
+    const duration = 2200;
     const interval = 20;
     const steps = duration / interval;
     let step = 0;
@@ -19,11 +19,17 @@ export function LoadingScreen() {
       step++;
       const currentProgress = Math.min(Math.round((step / steps) * 100), 100);
       setProgress(currentProgress);
-      
+
       if (step >= steps) {
         clearInterval(timer);
         // Hold at 100% briefly before fading out
-        setTimeout(() => setIsVisible(false), 400); 
+        setTimeout(() => {
+          setIsVisible(false);
+          // Signal the hero (and anything else) that the loader is done —
+          // reveals key off this event instead of hardcoded delays
+          (window as unknown as { __portfolioLoaded?: boolean }).__portfolioLoaded = true;
+          window.dispatchEvent(new Event("portfolio:loaded"));
+        }, 400);
       }
     }, interval);
 

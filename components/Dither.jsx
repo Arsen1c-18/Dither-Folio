@@ -30,6 +30,7 @@ uniform int   enableMouseInteraction;
 uniform float mouseRadius;
 uniform float colorNum;
 uniform float pixelSize;
+uniform int   anchorTop;
 
 /* ── Perlin helpers ───────────────────────────────────────────── */
 vec4 mod289(vec4 x){return x-floor(x*(1./289.))*289.;}
@@ -92,17 +93,33 @@ void main(){
   float ps = max(pixelSize, 1.);
   vec2 snapped = (floor(gl_FragCoord.xy / ps) + 0.5) * ps;
 
-  /* 2. NDC UV: [-0.5, 0.5], aspect-corrected */
-  vec2 uv = snapped / resolution - 0.5;
-  uv.x *= resolution.x / resolution.y;
+  /* 2. UV space.
+     Default: centred NDC, scale tied to height.
+     anchorTop: anchored to the top-left and scaled by width, so a container
+     that grows taller (expanding content) reveals more field at the bottom
+     instead of recentring the whole pattern. */
+  vec2 uv;
+  if (anchorTop == 1) {
+    uv = vec2(snapped.x, resolution.y - snapped.y) / resolution.x;
+    uv.x -= 0.5;
+  } else {
+    uv = snapped / resolution - 0.5;
+    uv.x *= resolution.x / resolution.y;
+  }
 
   /* 3. Wave field */
   float f = pattern(uv);
 
   /* 4. Mouse ripple */
   if(enableMouseInteraction == 1){
-    vec2 mNDC = (mousePos / resolution - 0.5) * vec2(1., -1.);
-    mNDC.x *= resolution.x / resolution.y;
+    vec2 mNDC;
+    if (anchorTop == 1) {
+      mNDC = mousePos / resolution.x;
+      mNDC.x -= 0.5;
+    } else {
+      mNDC = (mousePos / resolution - 0.5) * vec2(1., -1.);
+      mNDC.x *= resolution.x / resolution.y;
+    }
     float d = length(uv - mNDC);
     f -= 0.5 * (1. - smoothstep(0., mouseRadius, d));
   }
@@ -134,6 +151,7 @@ function DitheredWaves({
   disableAnimation,
   enableMouseInteraction,
   mouseRadius,
+  anchorTop,
 }) {
   const matRef   = useRef(null);
   const mouseRef = useRef(new THREE.Vector2());
@@ -165,6 +183,7 @@ function DitheredWaves({
     u.pixelSize.value              = pixelSize;
     u.enableMouseInteraction.value = enableMouseInteraction ? 1 : 0;
     u.mouseRadius.value            = mouseRadius;
+    u.anchorTop.value              = anchorTop ? 1 : 0;
 
     if (!prevColor.current.every((v, i) => v === waveColor[i])) {
       u.waveColor.value.setRGB(...waveColor);
@@ -204,6 +223,7 @@ function DitheredWaves({
     mouseRadius:            { value: mouseRadius },
     colorNum:               { value: colorNum },
     pixelSize:              { value: pixelSize },
+    anchorTop:              { value: anchorTop ? 1 : 0 },
   });
 
   return (
@@ -244,6 +264,7 @@ export default function Dither({
   disableAnimation       = false,
   enableMouseInteraction = true,
   mouseRadius            = 1,
+  anchorTop              = false,
 }) {
   return (
     <Canvas
@@ -263,6 +284,7 @@ export default function Dither({
         disableAnimation={disableAnimation}
         enableMouseInteraction={enableMouseInteraction}
         mouseRadius={mouseRadius}
+        anchorTop={anchorTop}
       />
     </Canvas>
   );

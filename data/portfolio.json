@@ -140,25 +140,40 @@
   "experience": [
     {
       "id": "exp-01",
-      "role": "Software Engineer",
-      "org": "Nebula Systems",
-      "period": "2024 — Present",
-      "current": true,
-      "summary": "Building distributed data pipelines and internal AI tooling. Led the migration to an event-driven architecture serving 2M+ daily events."
+      "role": "Graphic Design Intern",
+      "org": "Inoticx",
+      "period": "TBD",
+      "duration": "TBD",
+      "summary": "Details coming soon.",
+      "skills": ["Figma", "Adobe Illustrator", "Brand Design", "Social Media Creatives"]
     },
     {
       "id": "exp-02",
-      "role": "Full-Stack Developer",
-      "org": "Loom Labs",
-      "period": "2022 — 2024",
-      "summary": "Shipped customer-facing dashboards in React and Next.js, and owned the GraphQL API layer end to end."
+      "role": "Member",
+      "org": "GDG RBU",
+      "period": "TBD",
+      "duration": "TBD",
+      "summary": "Details coming soon.",
+      "skills": ["Community", "Event Design", "Collaboration"]
     },
     {
       "id": "exp-03",
-      "role": "Engineering Intern",
-      "org": "Orbit Digital",
-      "period": "2021 — 2022",
-      "summary": "Prototyped internal automation tools and contributed to the design-system component library."
+      "role": "Design Co-Lead",
+      "org": "E-Cell RBU",
+      "period": "TBD",
+      "duration": "TBD",
+      "summary": "Details coming soon.",
+      "skills": ["Design Leadership", "Team Management", "Visual Identity"]
+    },
+    {
+      "id": "exp-04",
+      "role": "Software Engineer",
+      "org": "Shaibya Solutions",
+      "period": "TBD",
+      "duration": "TBD",
+      "current": true,
+      "summary": "Details coming soon.",
+      "skills": ["React", "Next.js", "TypeScript", "Node.js"]
     }
   ],
   "projects": [
