@@ -6,6 +6,7 @@ import { IdentityTab } from "@/components/admin/tabs/IdentityTab";
 import { ThemeTab } from "@/components/admin/tabs/ThemeTab";
 import { FxTab } from "@/components/admin/tabs/FxTab";
 import { ContentTab } from "@/components/admin/tabs/ContentTab";
+import { LibraryTab } from "@/components/admin/tabs/LibraryTab";
 import { cn } from "@/lib/utils";
 
 const TABS = [
@@ -13,6 +14,7 @@ const TABS = [
   { id: "theme", label: "Theme", Comp: ThemeTab },
   { id: "fx", label: "Background / FX", Comp: FxTab },
   { id: "content", label: "Content", Comp: ContentTab },
+  { id: "library", label: "Library", Comp: LibraryTab },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];

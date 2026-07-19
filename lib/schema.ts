@@ -78,6 +78,8 @@ export const portfolioSchema = z.object({
     panel: fxPresetSchema,
     strip: fxPresetSchema,
   }),
+  /** Dashboard wiring (e.g. which library element is live in the navbar). */
+  ui: z.object({ navbarBot: z.string(), radialNavbar: z.string().optional() }).optional(),
   about: z.object({
     bio: z.array(z.string()),
     stats: z.array(z.object({ label: z.string(), value: z.string() })),

@@ -84,6 +84,14 @@ export interface AboutContent {
   stats: AboutStat[];
 }
 
+/** UI wiring choices made in the dashboard (e.g. which library element is live). */
+export interface UiConfig {
+  /** Library element id rendered at the radial nav hub. */
+  navbarBot: string;
+  /** Library radial navbar id rendered in the hero. */
+  radialNavbar?: string;
+}
+
 /** The full editable portfolio dataset — mirrors data/portfolio.json. */
 export interface PortfolioData {
   site: SiteInfo;
@@ -91,6 +99,8 @@ export interface PortfolioData {
   nav: NavItem[];
   theme: Theme;
   fx: Fx;
+  /** Optional — defaults are applied when absent from the JSON. */
+  ui?: UiConfig;
   about: AboutContent;
   experience: ExperienceItem[];
   projects: Project[];

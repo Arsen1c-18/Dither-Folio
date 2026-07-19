@@ -1,13 +1,9 @@
 "use client";
 
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useState, useEffect } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 
-
-/* ─── Seeded PRNG — deterministic "realistic" data ─────────────────────────
-   Mulberry32 gives the same sequence on every render so SSR + hydration
-   produce identical output. Seed is based on the site handle so it always
-   looks like a real developer's contribution history. */
+/* ─── Seeded PRNG ────────────────────────────────────────────────────────── */
 function mulberry32(seed: number) {
   return () => {
     seed |= 0; seed = seed + 0x6D2B79F5 | 0;
@@ -17,15 +13,13 @@ function mulberry32(seed: number) {
   };
 }
 
-/* Generate 52 × 7 contribution counts (0-12).
-   Real GitHub data is bursty: many zeros, occasional spikes. */
 function generateData(seed = 42): number[][] {
   const rand = mulberry32(seed);
   const weeks: number[][] = [];
   for (let w = 0; w < 53; w++) {
     const week: number[] = [];
-    const activePct = 0.45 + rand() * 0.35;   // each week 45-80% days active
-    const weekIntensity = rand();               // "busy" weeks have higher counts
+    const activePct = 0.45 + rand() * 0.35;
+    const weekIntensity = rand();
     for (let d = 0; d < 7; d++) {
       if (rand() > activePct) { week.push(0); continue; }
       const base = weekIntensity * 8;
@@ -37,87 +31,127 @@ function generateData(seed = 42): number[][] {
   return weeks;
 }
 
-/* ─── Color scale — 5 stops from near-black → accent red → bright red ─── */
+/* ─── Color scale ────────────────────────────────────────────────────────── */
 const LEVELS = [
   { min: 0,  max: 0,  bg: "transparent",              border: "rgba(255,255,255,0.07)", glow: 0 },
-  { min: 1,  max: 2,  bg: "rgba(180,  20, 20, 0.30)", border: "rgba(200, 40,40,0.45)",  glow: 0 },
-  { min: 3,  max: 5,  bg: "rgba(220,  35, 35, 0.55)", border: "rgba(220, 55,55,0.65)",  glow: 0.3 },
-  { min: 6,  max: 9,  bg: "rgba(255,  50, 50, 0.78)", border: "rgba(255, 70,70,0.88)",  glow: 0.7 },
-  { min: 10, max: 99, bg: "rgba(255,  80, 80, 0.96)", border: "rgba(255,110,80,1.00)",  glow: 1 },
+  { min: 1,  max: 2,  bg: "rgba(180, 20, 20, 0.30)",  border: "rgba(200,40,40,0.45)",   glow: 0 },
+  { min: 3,  max: 5,  bg: "rgba(220, 35, 35, 0.55)",  border: "rgba(220,55,55,0.65)",   glow: 0.3 },
+  { min: 6,  max: 9,  bg: "rgba(255, 50, 50, 0.78)",  border: "rgba(255,70,70,0.88)",   glow: 0.7 },
+  { min: 10, max: 99, bg: "rgba(255, 80, 80, 0.96)",  border: "rgba(255,110,80,1.00)",  glow: 1 },
 ];
 
-function getLevel(count: number) {
-  return LEVELS.find(l => count >= l.min && count <= l.max) ?? LEVELS[0];
+function getLevel(c: number) {
+  return LEVELS.find(l => c >= l.min && c <= l.max) ?? LEVELS[0];
 }
 
-/* ─── Single isometric cell ────────────────────────────────────────────── */
-interface CellProps {
-  count: number;
-  weekIdx: number;
-  dayIdx: number;
-  inView: boolean;
-}
-
-const CELL = 11;       // cell footprint px
-const GAP  =  2;       // gap between cells
+const CELL = 11;
+const GAP  = 2;
 const STEP = CELL + GAP;
 
-function Cell({ count, weekIdx, dayIdx, inView }: CellProps) {
+/* ─── Cell ──────────────────────────────────────────────────────────────── */
+function Cell({ count, weekIdx, dayIdx }: { count: number; weekIdx: number; dayIdx: number }) {
   const reduce = useReducedMotion();
-  const level = getLevel(count);
+  const level  = getLevel(count);
 
-  // Height: 0 → 2px (zero) → 18px (max 12)
-  const barH = count === 0 ? 0 : 2 + (count / 12) * 16;
+  /*
+   * Wavy diagonal delay — slow sweep so the wave is clearly visible.
+   * sin term creates undulating vertical ripple across columns.
+   */
+  const delay = reduce ? 0 : (
+    weekIdx * 0.028                               /* slow L→R sweep   */
+    + Math.sin(weekIdx * 0.55 + dayIdx * 0.9) * 0.022  /* wavy ripple */
+    + dayIdx * 0.006                              /* slight top→bottom */
+  );
 
-  // Stagger delay: ripple outward from top-left
-  const delay = reduce ? 0 : (weekIdx * 0.012 + dayIdx * 0.018);
+  /* Spring easing with visible overshoot — elastic, alive */
+  const springEase = [0.34, 1.6, 0.64, 1] as const;
 
-  const glowStyle = level.glow > 0
-    ? { boxShadow: `0 0 ${4 + level.glow * 8}px ${level.glow * 3}px rgba(255,60,60,${level.glow * 0.55})` }
-    : {};
+  const hasGlow = level.glow > 0.25;
+
+  /* Deterministic flicker period per cell — SSR-safe */
+  const flickerDuration = hasGlow
+    ? 1.1 + ((weekIdx * 7 + dayIdx * 3) % 19) * 0.1
+    : 0;
+
+  const glowDim    = `0 0 ${2 + level.glow * 4}px rgba(255,55,55,${level.glow * 0.28})`;
+  const glowBright = `0 0 ${6 + level.glow * 14}px rgba(255,60,60,${level.glow * 0.88})`;
 
   return (
     <motion.div
-      title={count === 0 ? "No contributions" : `${count} contribution${count > 1 ? "s" : ""}`}
-      className="relative rounded-sm cursor-default select-none"
+      title={count === 0 ? "No contributions" : `${count} contribution${count !== 1 ? "s" : ""}`}
+      className="rounded-sm cursor-default select-none"
       style={{
         width: CELL,
         height: CELL,
+        flexShrink: 0,
         background: level.bg,
         border: `1px solid ${level.border}`,
-        ...glowStyle,
-        flexShrink: 0,
       }}
-      initial={reduce ? false : { opacity: 0, scaleY: 0, y: 6 }}
-      animate={inView ? { opacity: 1, scaleY: 1, y: 0 } : { opacity: 0, scaleY: 0, y: 6 }}
-      transition={{ duration: 0.35, delay, ease: [0.22, 1, 0.36, 1] }}
+      /* Start very small + blurred so the zoom-in is obvious */
+      initial={{ opacity: 0, scale: 0.15, y: 8, filter: "blur(3px)" }}
+      animate={{
+        opacity: 1,
+        scale: 1,
+        y: 0,
+        filter: "blur(0px)",
+        ...(hasGlow && { boxShadow: [glowDim, glowBright, glowDim] }),
+      }}
+      transition={{
+        opacity: { duration: 0.7,  delay, ease: springEase },
+        scale:   { duration: 0.7,  delay, ease: springEase },
+        y:       { duration: 0.65, delay, ease: springEase },
+        filter:  { duration: 0.6,  delay, ease: "easeOut"  },
+        ...(hasGlow && {
+          boxShadow: {
+            delay:      delay + 0.75,
+            duration:   flickerDuration,
+            repeat:     Infinity,
+            repeatType: "mirror",
+            ease:       "easeInOut",
+          },
+        }),
+      }}
     />
   );
 }
 
-/* ─── Month labels ──────────────────────────────────────────────────────── */
+/* ─── Month labels ───────────────────────────────────────────────────────── */
 const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 function monthLabels(weeks: number[][]): { label: string; col: number }[] {
   const now = new Date();
   const labels: { label: string; col: number }[] = [];
-  let lastMonth = -1;
+  let last = -1;
   for (let w = 0; w < weeks.length; w++) {
-    const date = new Date(now);
-    date.setDate(date.getDate() - (weeks.length - 1 - w) * 7);
-    const m = date.getMonth();
-    if (m !== lastMonth) { labels.push({ label: MONTHS[m], col: w }); lastMonth = m; }
+    const d = new Date(now);
+    d.setDate(d.getDate() - (weeks.length - 1 - w) * 7);
+    const m = d.getMonth();
+    if (m !== last) { labels.push({ label: MONTHS[m], col: w }); last = m; }
   }
   return labels;
 }
 
-/* ─── Main component ────────────────────────────────────────────────────── */
+/* ─── Main ───────────────────────────────────────────────────────────────── */
 export function ContributionGraph() {
   const reduce = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
-  const inView = useInView(containerRef, { once: true, amount: 0.2 });
 
-  const weeks = useMemo(() => generateData(8472), []);
-  const total = useMemo(() => weeks.flat().reduce((s, v) => s + v, 0), [weeks]);
+  /* useInView on the outer container; fires once when visible */
+  const inView = useInView(containerRef, { once: false, amount: 0.15 });
+
+  /* playKey drives the grid's key — incrementing it remounts all cells */
+  const [playKey, setPlayKey] = useState(0);
+  const hasPlayed = useRef(false);
+
+  /* First play: trigger when container enters viewport */
+  useEffect(() => {
+    if (inView && !hasPlayed.current) {
+      hasPlayed.current = true;
+      setPlayKey(k => k + 1);
+    }
+  }, [inView]);
+
+  const weeks  = useMemo(() => generateData(8472), []);
+  const total  = useMemo(() => weeks.flat().reduce((s, v) => s + v, 0), [weeks]);
   const labels = useMemo(() => monthLabels(weeks), [weeks]);
 
   const DAY_LABELS = ["Mon", "", "Wed", "", "Fri", "", "Sun"];
@@ -127,21 +161,35 @@ export function ContributionGraph() {
       ref={containerRef}
       className="flex flex-col gap-4 rounded-2xl border border-[var(--color-border-strong)] bg-[var(--color-surface-2)] p-5 sm:p-6"
     >
-      {/* Header */}
+      {/* Header row */}
       <div className="flex items-center justify-between">
         <span className="label-system text-[var(--color-subtle)]">Contributions</span>
-        <span className="font-mono text-xs text-[var(--color-accent)]">
-          {total.toLocaleString()} this year
-        </span>
+
+        <div className="flex items-center gap-3">
+          <span className="font-mono text-xs text-[var(--color-accent)]">
+            {total.toLocaleString()} this year
+          </span>
+
+          {/* Replay button */}
+          <button
+            onClick={() => setPlayKey(k => k + 1)}
+            title="Replay animation"
+            className="flex items-center justify-center rounded-md border border-[var(--color-border-strong)] bg-transparent p-1 text-[var(--color-subtle)] transition-colors hover:border-[var(--color-accent)] hover:text-[var(--color-accent)]"
+            aria-label="Replay animation"
+          >
+            {/* Simple refresh SVG icon */}
+            <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M13.5 2.5A7 7 0 1 0 14.5 9" />
+              <polyline points="14.5 2 13.5 2.5 14 4" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Graph */}
       <div className="relative">
         {/* Month labels */}
-        <div
-          className="relative mb-1 h-4"
-          style={{ marginLeft: 28 }}  /* align with grid (day labels width) */
-        >
+        <div className="relative mb-1 h-4" style={{ marginLeft: 28 }}>
           {labels.map(({ label, col }) => (
             <span
               key={`${label}-${col}`}
@@ -154,12 +202,12 @@ export function ContributionGraph() {
         </div>
 
         <div className="flex gap-1">
-          {/* Day-of-week labels */}
+          {/* Day labels */}
           <div className="flex flex-col gap-0.5" style={{ width: 24 }}>
             {DAY_LABELS.map((d, i) => (
               <div
                 key={i}
-                className="font-mono text-[0.55rem] text-[var(--color-subtle)] leading-none flex items-center"
+                className="flex items-center font-mono text-[0.55rem] leading-none text-[var(--color-subtle)]"
                 style={{ height: STEP }}
               >
                 {d}
@@ -167,18 +215,12 @@ export function ContributionGraph() {
             ))}
           </div>
 
-          {/* Cell grid */}
-          <div className="flex gap-0.5 overflow-x-auto scrollbar-none">
+          {/* Cell grid — key change remounts everything → replays animation */}
+          <div key={playKey} className="flex gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
             {weeks.map((week, wi) => (
               <div key={wi} className="flex flex-col gap-0.5">
                 {week.map((count, di) => (
-                  <Cell
-                    key={di}
-                    count={count}
-                    weekIdx={wi}
-                    dayIdx={di}
-                    inView={inView}
-                  />
+                  <Cell key={di} count={count} weekIdx={wi} dayIdx={di} />
                 ))}
               </div>
             ))}
@@ -193,13 +235,10 @@ export function ContributionGraph() {
               key={i}
               className="rounded-sm"
               style={{
-                width: CELL,
-                height: CELL,
+                width: CELL, height: CELL,
                 background: l.bg,
                 border: `1px solid ${l.border}`,
-                boxShadow: l.glow > 0
-                  ? `0 0 ${4 + l.glow * 6}px rgba(255,60,60,${l.glow * 0.5})`
-                  : undefined,
+                boxShadow: l.glow > 0 ? `0 0 ${4 + l.glow * 6}px rgba(255,60,60,${l.glow * 0.5})` : undefined,
               }}
             />
           ))}

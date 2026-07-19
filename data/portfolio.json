@@ -1,6 +1,6 @@
 {
   "site": {
-    "name": "Moksh Parashate",
+    "name": "Moksh Barapatre",
     "handle": "MOKSH_",
     "role": "Software Engineer",
     "tagline": "Building scalable systems, exploring AI and turning ideas into impact.",
@@ -107,6 +107,10 @@
       "enableMouseInteraction": false,
       "mouseRadius": 1
     }
+  },
+  "ui": {
+    "navbarBot": "ascii-pet",
+    "radialNavbar": "radial-nav-classic"
   },
   "about": {
     "bio": [

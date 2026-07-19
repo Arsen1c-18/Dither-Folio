@@ -20,7 +20,7 @@ export function GlobeStrip() {
         viewport={{ once: true, amount: 0.2 }}
         transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
       >
-        <HeroGlobe className="size-[min(85vw,32rem)]" />
+        <HeroGlobe className="size-[min(95vw,48rem)]" />
         <div className="pointer-events-none absolute inset-x-6 bottom-10 flex items-end justify-between sm:inset-x-10 lg:inset-x-20">
           <span className="label-system text-[var(--color-subtle)]">
             {site.location}

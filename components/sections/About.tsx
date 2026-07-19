@@ -33,9 +33,9 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 
 export function About() {
   return (
-    <Section id="about" index="01" title="About" noChildReveal>
+    <Section id="about" noChildReveal>
       <SectionReveal>
-        <div className="grid grid-cols-1 gap-10 md:grid-cols-5 md:gap-12">
+        <div className="grid grid-cols-1 items-start gap-10 md:grid-cols-5 md:gap-12">
           <Narrative />
           <TiltPanel />
         </div>
@@ -65,12 +65,22 @@ function Narrative() {
 
   return (
     <motion.div
-      className="flex flex-col gap-6 md:col-span-3"
+      className="flex flex-col gap-6 md:col-span-3 md:mt-24 lg:mt-32"
       variants={container}
       initial="hidden"
       whileInView="show"
       viewport={{ once: true, amount: 0.2 }}
     >
+      <motion.header variants={item} className="mb-2 flex flex-col gap-3 md:mb-6">
+        <span className="label-system flex items-center gap-2">
+          <span className="text-[var(--color-accent)]">01</span>
+          <span className="h-px w-8 bg-[var(--color-border-strong)]" />
+          about
+        </span>
+        <h2 className="font-display text-3xl font-medium tracking-tight text-[var(--color-foreground)] sm:text-5xl">
+          About
+        </h2>
+      </motion.header>
       {about.bio.map((paragraph, i) => (
         <motion.p
           key={i}
@@ -157,7 +167,7 @@ function TiltPanel() {
 
   return (
     <motion.div
-      className="md:col-span-2"
+      className="md:col-span-2 md:mt-24 lg:mt-32 md:h-[22rem] lg:h-[26rem]"
       initial={reduce ? false : { opacity: 0, y: 28, scale: 0.96 }}
       whileInView={{ opacity: 1, y: 0, scale: 1 }}
       viewport={{ once: true, amount: 0.1 }}
