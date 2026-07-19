@@ -11,13 +11,30 @@ import { data } from "@/lib/data";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 /**
- * Decorative crosshair for corners
+ * Decorative L-shaped corner bracket — frames the hero like a viewfinder
  */
-function Crosshair({ className }: { className?: string }) {
+function CornerBracket({
+  className,
+  corner,
+}: {
+  className?: string;
+  corner: "tl" | "tr" | "bl" | "br";
+}) {
+  const edges = {
+    tl: "border-l border-t",
+    tr: "border-r border-t",
+    bl: "border-l border-b",
+    br: "border-r border-b",
+  }[corner];
+  const dot = {
+    tl: "left-0 top-0 -translate-x-1/2 -translate-y-1/2",
+    tr: "right-0 top-0 translate-x-1/2 -translate-y-1/2",
+    bl: "left-0 bottom-0 -translate-x-1/2 translate-y-1/2",
+    br: "right-0 bottom-0 translate-x-1/2 translate-y-1/2",
+  }[corner];
   return (
-    <div className={`absolute size-4 ${className}`} aria-hidden>
-      <div className="absolute left-1/2 top-0 h-full w-px -translate-x-1/2 bg-[var(--color-border-strong)]" />
-      <div className="absolute left-0 top-1/2 h-px w-full -translate-y-1/2 bg-[var(--color-border-strong)]" />
+    <div className={`absolute size-5 ${edges} border-[var(--color-border-strong)] ${className}`} aria-hidden>
+      <span className={`absolute size-[3px] bg-[var(--color-accent)] opacity-70 ${dot}`} />
     </div>
   );
 }
@@ -45,26 +62,36 @@ function LiveTime() {
   }, []);
 
   return (
-    <div className="flex flex-col gap-1 text-right">
-      <span className="label-system text-[var(--color-subtle)]">LOCAL TIME (IST)</span>
-      <span className="font-mono text-sm text-[var(--color-muted)]">{time || "00:00:00"}</span>
+    <div className="flex flex-col items-end gap-1 text-right">
+      <span className="label-system text-[var(--color-subtle)]">LOCAL — IST</span>
+      <span className="font-mono text-sm tabular-nums text-[var(--color-foreground)]">
+        {time || "00:00:00"}
+        <span className="ml-1.5 inline-block size-1 rounded-full bg-[var(--color-accent)] align-middle animate-pulse" />
+      </span>
     </div>
   );
 }
 
 /**
- * Static center alignment HUD marker
+ * Center HUD marker — tick ruler with an accent needle
  */
 function CenterAlignment() {
   return (
-    <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 flex-col items-center gap-1 opacity-60">
-      <div className="flex items-end gap-1.5 mb-0.5">
-        <span className="w-6 h-px bg-[var(--color-border-strong)] mb-[1px]" />
-        <span className="w-px h-3 bg-[var(--color-accent)]" />
-        <span className="w-6 h-px bg-[var(--color-border-strong)] mb-[1px]" />
+    <div className="hidden md:flex absolute left-1/2 -translate-x-1/2 flex-col items-center gap-1.5 opacity-70">
+      <div className="flex items-end gap-[5px]">
+        {Array.from({ length: 9 }).map((_, i) => (
+          <span
+            key={i}
+            className={
+              i === 4
+                ? "w-px h-3.5 bg-[var(--color-accent)]"
+                : `w-px ${i % 2 === 0 ? "h-2" : "h-1"} bg-[var(--color-border-strong)]`
+            }
+          />
+        ))}
       </div>
-      <span className="font-mono text-[0.6rem] tracking-[0.2em] text-[var(--color-muted)]">
-        CTRL_AXIS
+      <span className="font-mono text-[0.6rem] tracking-[0.25em] text-[var(--color-subtle)]">
+        N 28.61° / E 77.20°
       </span>
     </div>
   );
@@ -115,29 +142,37 @@ export function Hero() {
       </div>
 
       {/* Decorative Corner HUD Elements */}
-      <Crosshair className="left-6 top-6 sm:left-10 sm:top-10 lg:left-12 lg:top-12" />
-      <Crosshair className="right-6 top-6 sm:right-10 sm:top-10 lg:right-12 lg:top-12" />
-      <Crosshair className="bottom-6 left-6 sm:bottom-10 sm:left-10 lg:bottom-12 lg:left-12" />
-      <Crosshair className="bottom-6 right-6 sm:bottom-10 sm:right-10 lg:bottom-12 lg:right-12" />
+      <CornerBracket corner="tl" className="left-6 top-6 sm:left-10 sm:top-10 lg:left-12 lg:top-12" />
+      <CornerBracket corner="tr" className="right-6 top-6 sm:right-10 sm:top-10 lg:right-12 lg:top-12" />
+      <CornerBracket corner="bl" className="bottom-6 left-6 sm:bottom-10 sm:left-10 lg:bottom-12 lg:left-12" />
+      <CornerBracket corner="br" className="bottom-6 right-6 sm:bottom-10 sm:right-10 lg:bottom-12 lg:right-12" />
 
       {/* Top Header / Branding */}
       <motion.div
         {...fadeIn(0.9)}
-        className="absolute top-6 left-6 right-6 flex items-start justify-between sm:top-10 sm:left-10 sm:right-10 lg:top-12 lg:left-12 lg:right-12"
+        className="absolute top-6 left-10 right-10 flex items-start justify-between sm:top-10 sm:left-14 sm:right-14 lg:top-12 lg:left-16 lg:right-16"
       >
-        <div className="flex flex-col gap-1">
-          <span className="label-system text-[var(--color-subtle)]">PORTFOLIO.OS</span>
-          <span className="font-mono text-sm text-[var(--color-muted)]">v2.0.26</span>
+        <div className="flex items-center gap-3">
+          <span className="grid size-8 place-items-center border border-[var(--color-border-strong)] font-mono text-[0.65rem] text-[var(--color-accent)]">
+            {"//"}
+          </span>
+          <div className="flex flex-col">
+            <span className="label-system text-[var(--color-foreground)]">PORTFOLIO.OS</span>
+            <span className="font-mono text-[0.65rem] text-[var(--color-subtle)]">BUILD v2.0.26 — STABLE</span>
+          </div>
         </div>
 
         {/* Top Mid: Static Center Alignment HUD */}
         <CenterAlignment />
-        
-        <div className="hidden sm:flex flex-col gap-1 text-right">
+
+        <div className="hidden sm:flex flex-col items-end gap-1 text-right">
           <span className="label-system text-[var(--color-subtle)]">NETWORK</span>
           <span className="font-mono text-sm text-[var(--color-accent)] flex items-center gap-2 justify-end">
-             <span className="size-1.5 rounded-full bg-[var(--color-accent)] animate-pulse" />
-             ESTABLISHED
+            <span className="relative flex size-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--color-accent)] opacity-60" />
+              <span className="relative inline-flex size-1.5 rounded-full bg-[var(--color-accent)]" />
+            </span>
+            ESTABLISHED
           </span>
         </div>
       </motion.div>
@@ -221,16 +256,31 @@ export function Hero() {
       {/* Scroll hint & System Status Bottom Bar */}
       <motion.div
         {...fadeIn(0.9)}
-        className="absolute bottom-6 left-6 right-6 flex items-end justify-between sm:bottom-10 sm:left-10 sm:right-10 lg:bottom-12 lg:left-12 lg:right-12"
+        className="absolute bottom-6 left-10 right-10 flex items-end justify-between sm:bottom-10 sm:left-14 sm:right-14 lg:bottom-12 lg:left-16 lg:right-16"
       >
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1.5">
           <span className="label-system text-[var(--color-subtle)]">SYS.STATUS</span>
-          <span className="font-mono text-sm text-[var(--color-accent)]">ALL SYSTEMS NOMINAL</span>
+          <span className="flex items-center gap-2 font-mono text-sm text-[var(--color-accent)]">
+            <span className="inline-block h-3 w-px bg-[var(--color-accent)]" />
+            ALL SYSTEMS NOMINAL
+          </span>
         </div>
 
-        <div className="flex items-center gap-3 md:absolute md:left-1/2 md:-translate-x-1/2">
-          <span className="label-system text-[var(--color-subtle)]">Scroll ↓</span>
-        </div>
+        <a
+          href="#about"
+          className="pointer-events-auto group flex flex-col items-center gap-2 md:absolute md:left-1/2 md:-translate-x-1/2"
+        >
+          <span className="label-system text-[var(--color-subtle)] transition-colors group-hover:text-[var(--color-foreground)]">
+            SCROLL
+          </span>
+          <span className="relative h-8 w-px overflow-hidden bg-[var(--color-border-strong)]">
+            <motion.span
+              className="absolute left-0 top-0 h-3 w-px bg-[var(--color-accent)]"
+              animate={reduceMotion ? undefined : { y: [-12, 32] }}
+              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </span>
+        </a>
 
         <div className="hidden sm:block">
           <LiveTime />

@@ -10,11 +10,12 @@ export function SmoothScroll() {
     if (reducedMotion.matches) return;
 
     const lenis = new Lenis({
-      duration: 1.15,
-      lerp: 0.085,
+      duration: 1.2,
+      lerp: 0.09,
       smoothWheel: true,
       touchMultiplier: 1.35,
-      anchors: { offset: -24, duration: 1.25, lerp: 0.09 },
+      easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      anchors: { offset: -24, duration: 1.4, lerp: 0.09 },
     });
 
     let frame = 0;
