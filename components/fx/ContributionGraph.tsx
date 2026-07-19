@@ -132,7 +132,6 @@ function monthLabels(weeks: number[][]): { label: string; col: number }[] {
 
 /* ─── Main ───────────────────────────────────────────────────────────────── */
 export function ContributionGraph() {
-  const reduce = useReducedMotion();
   const containerRef = useRef<HTMLDivElement>(null);
 
   /* useInView on the outer container; fires once when visible */
