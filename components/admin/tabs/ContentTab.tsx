@@ -1,23 +1,107 @@
 "use client";
 
+import { useState } from "react";
 import { useAdmin } from "@/components/admin/store";
 import {
   Group,
   TextField,
   TextArea,
   Toggle,
-  Slider,
   Field,
   IconButton,
 } from "@/components/admin/fields";
-import type { ProjectCategory } from "@/types";
+import type { ProjectCategory, Project } from "@/types";
+import { SkillsEditor } from "@/components/admin/SkillsEditor";
 
 const CATEGORIES: ProjectCategory[] = ["ai-ml", "web-apps", "tools"];
+
+/**
+ * Card-image control for one project: upload a file (stored under
+ * public/projects/, dev-only), paste a path/URL, preview, and clear.
+ * The card falls back to /projects/{id}.png then the numbered placeholder.
+ */
+function ProjectImageField({ project, index }: { project: Project; index: number }) {
+  const { update } = useAdmin();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const src = project.image || `/projects/${project.id}.png`;
+
+  async function handleFile(file: File) {
+    setBusy(true);
+    setError(null);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      body.append("projectId", project.id);
+      const res = await fetch("/api/admin/upload", { method: "POST", body });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? `Upload failed (${res.status})`);
+      // Bust the browser cache so re-uploads show immediately
+      update((d) => { d.projects[index].image = `${json.path}?v=${Date.now()}`; });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-end gap-3">
+        {/* Preview thumb — shows the effective image or the fallback state */}
+        <span className="relative flex h-16 w-24 flex-none items-center justify-center overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]">
+          <span className="absolute font-mono text-[0.55rem] text-[var(--color-faint)]">
+            no image
+          </span>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            key={src}
+            src={src}
+            alt=""
+            className="relative h-full w-full object-cover"
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+          />
+        </span>
+
+        <div className="min-w-48 flex-1">
+          <TextField
+            label="Image (path or URL)"
+            value={project.image ?? ""}
+            placeholder={`/projects/${project.id}.png`}
+            onChange={(v) => update((d) => { d.projects[index].image = v; })}
+            hint="Empty falls back to the conventional path, then the numbered placeholder."
+          />
+        </div>
+
+        <label className={`cursor-pointer rounded-md border border-[var(--color-border-strong)] px-3 py-2 text-xs transition-colors ${busy ? "opacity-50" : "text-[var(--color-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-foreground)]"}`}>
+          {busy ? "Uploading…" : "Upload"}
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/avif"
+            className="hidden"
+            disabled={busy}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void handleFile(f);
+              e.target.value = "";
+            }}
+          />
+        </label>
+        {project.image && (
+          <IconButton onClick={() => update((d) => { d.projects[index].image = ""; })} title="Clear image">
+            ✕
+          </IconButton>
+        )}
+      </div>
+      {error && <p className="text-xs text-[var(--color-accent)]">{error}</p>}
+    </div>
+  );
+}
 
 /** Content tab — Projects, Experience, Skills, and the About section. */
 export function ContentTab() {
   const { data, update } = useAdmin();
-  const { projects, experience, skills, about } = data;
+  const { projects, experience, about } = data;
 
   return (
     <div className="flex flex-col gap-5">
@@ -52,6 +136,7 @@ export function ContentTab() {
                 <TextField label="Stack (comma-separated)" value={p.stack.join(", ")} onChange={(v) => update((d) => { d.projects[i].stack = v.split(",").map((s) => s.trim()).filter(Boolean); })} />
                 <TextField label="Link (href)" value={p.href ?? ""} onChange={(v) => update((d) => { d.projects[i].href = v; })} />
               </div>
+              <ProjectImageField project={p} index={i} />
             </div>
           ))}
         </div>
@@ -76,32 +161,27 @@ export function ContentTab() {
                 <IconButton onClick={() => update((d) => { d.experience.splice(i, 1); })} title="Remove">✕</IconButton>
               </div>
               <TextArea label="Summary" value={x.summary} onChange={(v) => update((d) => { d.experience[i].summary = v; })} rows={2} />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <TextField
+                  label="Skills (comma-separated)"
+                  value={(x.skills ?? []).join(", ")}
+                  onChange={(v) => update((d) => { d.experience[i].skills = v.split(",").map((s) => s.trim()).filter(Boolean); })}
+                />
+                <TextField
+                  label="Achievements (comma-separated)"
+                  value={(x.achievements ?? []).join(", ")}
+                  onChange={(v) => update((d) => { d.experience[i].achievements = v.split(",").map((s) => s.trim()).filter(Boolean); })}
+                  hint='e.g. "1st — Build with AI Hackathon"'
+                />
+              </div>
               <Toggle label="Current role" value={x.current ?? false} onChange={(v) => update((d) => { d.experience[i].current = v; })} />
             </div>
           ))}
         </div>
       </Group>
 
-      {/* Skills */}
-      <Group
-        title="Skills"
-        action={
-          <IconButton onClick={() => update((d) => { d.skills.push({ name: "New skill", level: 50, category: "Languages" }); })}>
-            + Add
-          </IconButton>
-        }
-      >
-        <div className="flex flex-col gap-4">
-          {skills.map((s, i) => (
-            <div key={i} className="grid grid-cols-1 gap-3 rounded-lg border border-[var(--color-border)] p-3 sm:grid-cols-[1.5fr_1fr_2fr_auto] sm:items-end">
-              <TextField label="Name" value={s.name} onChange={(v) => update((d) => { d.skills[i].name = v; })} />
-              <TextField label="Category" value={s.category} onChange={(v) => update((d) => { d.skills[i].category = v; })} />
-              <Slider label="Level" value={s.level} min={0} max={100} step={1} onChange={(v) => update((d) => { d.skills[i].level = v; })} />
-              <IconButton onClick={() => update((d) => { d.skills.splice(i, 1); })} title="Remove">✕</IconButton>
-            </div>
-          ))}
-        </div>
-      </Group>
+      {/* Skills — sectioned editor with icon picker */}
+      <SkillsEditor />
 
       {/* About */}
       <Group

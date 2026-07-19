@@ -148,7 +148,7 @@ function StripCard({
           style={{ transform: "scaleX(-1)" }}
           className="select-none font-mono text-[0.62rem] uppercase tracking-[0.3em] text-[var(--color-faint)]"
         >
-          PROJ_{String(idx + 1).padStart(2, "0")} // reverse
+          PROJ_{String(idx + 1).padStart(2, "0")} {"// reverse"}
         </span>
       </motion.div>
 
@@ -237,10 +237,12 @@ function StripCard({
 
 function ProjectImage({ project, idx }: { project: Project; idx: number }) {
   const [imageOk, setImageOk] = useState(false);
-  const src = `/projects/${project.id}.png`;
+  // CMS-assigned image wins; fall back to the conventional per-id path
+  const src = project.image || `/projects/${project.id}.png`;
 
   // Probe once so a missing file never flashes a broken image
   useEffect(() => {
+    setImageOk(false);
     const img = new Image();
     img.onload = () => setImageOk(true);
     img.src = src;
@@ -305,11 +307,15 @@ export function Projects() {
 
   // Direct drive: scroll progress maps linearly onto the wheel — no detent,
   // no spring. Lenis already smooths the scroll itself, so the wheel turns
-  // exactly with the scrollbar and stops the moment you stop. The range is
-  // a FULL revolution (SLOTS steps): the last stretch turns the wheel from
-  // the last card back to the first, which comes round from behind — back
-  // face first, flipping to front as it passes edge-on.
-  const stripIndex = useTransform(scrollYProgress, (p: number) => p * SLOTS);
+  // exactly with the scrollbar and stops the moment you stop. The range
+  // ends ON the last card (SLOTS−1 steps): the moment it is focused the
+  // sticky stage releases and the page scrolls on. The wheel is still
+  // closed — while it turns, off-focus cards ride round the back of the
+  // drum (back face showing) to reach their slot.
+  const stripIndex = useTransform(
+    scrollYProgress,
+    (p: number) => p * (SLOTS - 1),
+  );
 
   // Counter + progress rail track the nearest record, wrapped to the wheel
   const [active, setActive] = useState(0);
@@ -327,10 +333,11 @@ export function Projects() {
     <section
       ref={containerRef}
       id="projects"
-      // One viewport of scroll per wheel step — SLOTS steps for the full
-      // revolution, plus the sticky viewport itself
+      // One viewport of scroll per transition between cards, plus the
+      // sticky viewport itself — the section ends when the last card is
+      // focused, then the page scrolls on
       className="relative z-20 h-auto scroll-mt-20 md:h-[var(--strip-h)]"
-      style={{ "--strip-h": `${(SLOTS + 1) * 100}vh` } as React.CSSProperties}
+      style={{ "--strip-h": `${SLOTS * 100}vh` } as React.CSSProperties}
     >
       {/* Sticky full-screen stage (desktop) / normal flow (mobile) */}
       <div className="relative flex h-auto w-full flex-col overflow-visible py-16 md:sticky md:top-0 md:h-screen md:overflow-hidden md:py-0">

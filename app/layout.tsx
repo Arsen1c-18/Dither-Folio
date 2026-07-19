@@ -36,14 +36,30 @@ export const metadata: Metadata = {
 };
 
 /**
- * Accent theme injected as inline CSS vars so the dev-only dashboard's saved
- * accent overrides the static tokens in globals.css (inline style wins over
- * the `:root` rule). Everything else stays in globals.css.
+ * Theme injected as inline CSS vars so the dev-only dashboard's saved palette
+ * overrides the static tokens in globals.css (inline style wins over the
+ * `:root` rule). Accent is always present; the extended palette keys are
+ * optional and only injected when set, so absent keys keep the CSS defaults.
  */
 const themeVars = {
   "--color-accent": theme.accent,
   "--color-accent-bright": theme.accentBright,
   "--color-accent-dim": theme.accentDim,
+  ...(theme.bg && { "--color-bg": theme.bg }),
+  ...(theme.surface && { "--color-surface": theme.surface }),
+  ...(theme.surface2 && { "--color-surface-2": theme.surface2 }),
+  ...(theme.elevated && { "--color-elevated": theme.elevated }),
+  ...(theme.foreground && { "--color-foreground": theme.foreground }),
+  ...(theme.muted && { "--color-muted": theme.muted }),
+  ...(theme.subtle && { "--color-subtle": theme.subtle }),
+  ...(theme.faint && { "--color-faint": theme.faint }),
+  ...(theme.online && { "--color-online": theme.online }),
+  ...(theme.borderOpacity != null && {
+    "--color-border": `rgba(255,255,255,${theme.borderOpacity})`,
+  }),
+  ...(theme.borderStrongOpacity != null && {
+    "--color-border-strong": `rgba(255,255,255,${theme.borderStrongOpacity})`,
+  }),
 } as CSSProperties;
 
 export default function RootLayout({

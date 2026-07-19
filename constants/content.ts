@@ -10,3 +10,12 @@ export const experience = data.experience;
 export const projects = data.projects;
 export const skills = data.skills;
 export const about = data.about;
+
+/** Contact + footer copy, with built-in fallbacks for older JSON. */
+export const contact = {
+  quote: data.contact?.quote || "Somewhere on this sphere · probably shipping",
+};
+export const footer = {
+  credit: data.footer?.credit || "BUILT BY HAND",
+  eof: data.footer?.eof || "EOF",
+};

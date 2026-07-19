@@ -2,11 +2,11 @@
   "site": {
     "name": "Moksh Barapatre",
     "handle": "MOKSH_",
-    "role": "Software Engineer",
+    "role": "Frontend Engineer",
     "tagline": "Building scalable systems, exploring AI and turning ideas into impact.",
-    "location": "Pune, IN",
+    "location": "Nagpur, IN",
     "timezone": "Asia/Kolkata",
-    "email": "hello@example.com",
+    "email": "barapatremoksh1816@example.com",
     "available": true,
     "resumeUrl": "/resume.pdf",
     "metadataBase": "https://example.com"
@@ -14,23 +14,23 @@
   "socials": [
     {
       "label": "GitHub",
-      "href": "https://github.com/",
-      "handle": "@moksh"
+      "href": "https://github.com/Arsen1c-18",
+      "handle": "Arsen1c-18"
     },
     {
       "label": "LinkedIn",
-      "href": "https://linkedin.com/in/",
-      "handle": "in/moksh"
-    },
-    {
-      "label": "X",
-      "href": "https://x.com/",
-      "handle": "@moksh"
+      "href": "https://www.linkedin.com/in/moksh-barapatre/",
+      "handle": "Moksh Barapatre"
     },
     {
       "label": "Email",
-      "href": "mailto:hello@example.com",
-      "handle": "hello@example.com"
+      "href": "mailto:barapatremoksh1816@gmail.com",
+      "handle": "barapatremoksh1816@gmail.com"
+    },
+    {
+      "label": "Instagram",
+      "href": "https://www.instagram.com/moxarts_/",
+      "handle": "@moxarts_"
     }
   ],
   "nav": [
@@ -121,11 +121,11 @@
     "stats": [
       {
         "label": "Years of experience",
-        "value": "4+"
+        "value": "1+"
       },
       {
         "label": "Projects shipped",
-        "value": "20+"
+        "value": "5+"
       },
       {
         "label": "Open-source contributions",
@@ -137,43 +137,66 @@
       }
     ]
   },
+  "contact": {
+    "quote": "ONLINE • WORLDWIDE"
+  },
+  "footer": {
+    "credit": "SEE YOU IN THE NEXT COMMIT."
+  },
   "experience": [
     {
       "id": "exp-01",
       "role": "Graphic Design Intern",
       "org": "Inoticx",
       "period": "TBD",
-      "duration": "TBD",
       "summary": "Details coming soon.",
-      "skills": ["Figma", "Adobe Illustrator", "Brand Design", "Social Media Creatives"]
+      "skills": [
+        "Figma",
+        "Adobe Illustrator",
+        "Brand Design",
+        "Social Media Creatives"
+      ]
     },
     {
       "id": "exp-02",
       "role": "Member",
       "org": "GDG RBU",
       "period": "TBD",
-      "duration": "TBD",
       "summary": "Details coming soon.",
-      "skills": ["Community", "Event Design", "Collaboration"]
+      "skills": [
+        "Community",
+        "Event Design",
+        "Collaboration"
+      ],
+      "achievements": [
+        "1st — Build with AI Hackathon"
+      ]
     },
     {
       "id": "exp-03",
       "role": "Design Co-Lead",
       "org": "E-Cell RBU",
       "period": "TBD",
-      "duration": "TBD",
       "summary": "Details coming soon.",
-      "skills": ["Design Leadership", "Team Management", "Visual Identity"]
+      "skills": [
+        "Design Leadership",
+        "Team Management",
+        "Visual Identity"
+      ]
     },
     {
       "id": "exp-04",
       "role": "Software Engineer",
       "org": "Shaibya Solutions",
       "period": "TBD",
-      "duration": "TBD",
       "current": true,
       "summary": "Details coming soon.",
-      "skills": ["React", "Next.js", "TypeScript", "Node.js"]
+      "skills": [
+        "React",
+        "Next.js",
+        "TypeScript",
+        "Node.js"
+      ]
     }
   ],
   "projects": [
@@ -235,47 +258,135 @@
     {
       "name": "TypeScript",
       "level": 92,
-      "category": "Languages"
+      "category": "Languages",
+      "icon": "typescript",
+      "hidden": false
     },
     {
       "name": "Python",
       "level": 88,
-      "category": "Languages"
+      "category": "Languages",
+      "icon": "python",
+      "hidden": false
     },
     {
       "name": "Go",
       "level": 72,
-      "category": "Languages"
+      "category": "Languages",
+      "icon": "go",
+      "hidden": false
     },
     {
       "name": "React / Next.js",
       "level": 94,
-      "category": "Frontend"
+      "category": "Frontend",
+      "icon": "nextdotjs",
+      "hidden": false
     },
     {
       "name": "Three.js / WebGL",
       "level": 68,
-      "category": "Frontend"
+      "category": "Frontend",
+      "icon": "threedotjs",
+      "hidden": false
     },
     {
       "name": "Node.js",
       "level": 85,
-      "category": "Backend"
+      "category": "Backend",
+      "icon": "nodedotjs",
+      "hidden": false
     },
     {
       "name": "PostgreSQL",
       "level": 80,
-      "category": "Backend"
+      "category": "Backend",
+      "icon": "postgresql",
+      "hidden": false
     },
     {
       "name": "Docker / K8s",
       "level": 76,
-      "category": "Infra"
+      "category": "Infra",
+      "icon": "docker",
+      "hidden": true
     },
     {
       "name": "LLMs / RAG",
       "level": 82,
-      "category": "AI/ML"
+      "category": "AI/ML",
+      "icon": "openai",
+      "hidden": true
+    },
+    {
+      "name": "UI/UX Design",
+      "level": 80,
+      "category": "Design",
+      "icon": "",
+      "hidden": false
+    },
+    {
+      "name": "Figma",
+      "level": 84,
+      "category": "Design",
+      "icon": "figma",
+      "hidden": false
+    },
+    {
+      "name": "Adobe Illustrator",
+      "level": 72,
+      "category": "Design",
+      "icon": "adobeillustrator",
+      "hidden": false
+    },
+    {
+      "name": "Brand / Visual Identity",
+      "level": 75,
+      "category": "Design",
+      "icon": "",
+      "hidden": false
+    },
+    {
+      "name": "Leadership",
+      "level": 80,
+      "category": "Soft Skills",
+      "icon": "",
+      "hidden": false
+    },
+    {
+      "name": "Communication",
+      "level": 85,
+      "category": "Soft Skills",
+      "icon": "",
+      "hidden": false
+    },
+    {
+      "name": "Team Management",
+      "level": 76,
+      "category": "Soft Skills",
+      "icon": "",
+      "hidden": false
+    },
+    {
+      "name": "Git / GitHub",
+      "level": 90,
+      "category": "Software",
+      "icon": "git",
+      "hidden": false
+    },
+    {
+      "name": "Linux",
+      "level": 82,
+      "category": "Software",
+      "icon": "linux",
+      "hidden": false
+    },
+    {
+      "name": "Blender",
+      "level": 55,
+      "category": "Software",
+      "icon": "blender",
+      "hidden": true
     }
   ]
 }

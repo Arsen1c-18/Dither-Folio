@@ -37,7 +37,7 @@ const LEVELS = [
   { min: 1,  max: 2,  bg: "rgba(180, 20, 20, 0.30)",  border: "rgba(200,40,40,0.45)",   glow: 0 },
   { min: 3,  max: 5,  bg: "rgba(220, 35, 35, 0.55)",  border: "rgba(220,55,55,0.65)",   glow: 0.3 },
   { min: 6,  max: 9,  bg: "rgba(255, 50, 50, 0.78)",  border: "rgba(255,70,70,0.88)",   glow: 0.7 },
-  { min: 10, max: 99, bg: "rgba(255, 80, 80, 0.96)",  border: "rgba(255,110,80,1.00)",  glow: 1 },
+  { min: 10, max: Infinity, bg: "rgba(255, 80, 80, 0.96)",  border: "rgba(255,110,80,1.00)",  glow: 1 },
 ];
 
 function getLevel(c: number) {
@@ -150,8 +150,26 @@ export function ContributionGraph() {
     }
   }, [inView]);
 
-  const weeks  = useMemo(() => generateData(8472), []);
-  const total  = useMemo(() => weeks.flat().reduce((s, v) => s + v, 0), [weeks]);
+  /* Real calendar from /api/contributions; seeded data until it arrives
+     (and permanently if the API is unconfigured or errors). Replayed via
+     playKey so cells re-animate when live data lands. */
+  const [live, setLive] = useState<{ weeks: number[][]; total: number } | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/api/contributions")
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (cancelled || !data?.weeks?.length) return;
+        setLive({ weeks: data.weeks, total: data.total });
+        setPlayKey(k => k + 1);
+      })
+      .catch(() => {}); /* keep fallback */
+    return () => { cancelled = true; };
+  }, []);
+
+  const fallback = useMemo(() => generateData(8472), []);
+  const weeks  = live?.weeks ?? fallback;
+  const total  = live?.total ?? weeks.flat().reduce((s, v) => s + v, 0);
   const labels = useMemo(() => monthLabels(weeks), [weeks]);
 
   const DAY_LABELS = ["Mon", "", "Wed", "", "Fri", "", "Sun"];

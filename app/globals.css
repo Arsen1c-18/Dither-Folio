@@ -98,19 +98,17 @@
     color: #050505;
   }
 
-  /* Thin, on-brand scrollbar (visible when Lenis is not active) */
+  /* No visible scrollbars anywhere — scrolling still works (Lenis +
+     native); the ScrollProgress rail is the position indicator */
+  html,
+  body {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* legacy Edge/IE */
+  }
   ::-webkit-scrollbar {
-    width: 8px;
-  }
-  ::-webkit-scrollbar-track {
-    background: var(--color-bg);
-  }
-  ::-webkit-scrollbar-thumb {
-    background: var(--color-faint);
-    border-radius: 9999px;
-  }
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-subtle);
+    width: 0;
+    height: 0;
+    display: none; /* Chrome / Safari / Edge */
   }
 
   /* Focus visibility for keyboard users */
@@ -134,16 +132,6 @@
 
 .section-flow {
   position: relative;
-}
-
-.section-flow::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  width: 1px;
-  height: 3.5rem;
-  background: linear-gradient(transparent, var(--color-border-strong));
 }
 
 /*

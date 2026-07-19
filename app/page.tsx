@@ -6,7 +6,6 @@ import { Experience } from "@/components/sections/Experience";
 import { Projects } from "@/components/sections/Projects";
 import { Skills } from "@/components/sections/Skills";
 import { Contact } from "@/components/sections/Contact";
-import { GlobeStrip } from "@/components/sections/GlobeStrip";
 import { LoadingScreen } from "@/components/layout/LoadingScreen";
 
 export default function Home() {
@@ -21,7 +20,6 @@ export default function Home() {
         <Projects />
         <Skills />
         <Contact />
-        <GlobeStrip />
       </main>
       <Footer />
     </>

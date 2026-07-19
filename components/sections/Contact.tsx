@@ -1,202 +1,222 @@
 "use client";
 
-import { useState, useRef } from "react";
-import { site, socials } from "@/constants/site";
-import { Section } from "@/components/layout/Section";
-import { cn } from "@/lib/utils";
+import { useRef } from "react";
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+  useSpring,
+} from "framer-motion";
+import { socials } from "@/constants/site";
+import { contact } from "@/constants/content";
+import { HeroGlobe } from "@/components/fx/HeroGlobe";
 
-type Status = "idle" | "sending" | "sent" | "error";
+const EASE = [0.22, 1, 0.36, 1] as const;
 
 /**
- * Contact — mailto-based form (no server action required) plus a sidebar
- * with direct social / email links. Submitting the form opens the native
- * mail client via a mailto: href so it works with zero back-end.
+ * Contact — no form, no boxes: the star-globe with every channel link
+ * orbiting it on a circular path, like satellites. Scroll drives the whole
+ * assembly: it zooms in gently and the orbit ring rotates a few degrees as
+ * you move through the section, and the composition deliberately overhangs
+ * the footer — the globe ends halfway over it, floating above the
+ * wordmark strip. The HeroGlobe component itself is untouched.
  */
+
+// Orbit radius as a fraction of the globe wrapper's half-size — links sit
+// just outside the starfield's rim
+const ORBIT = 1.08;
+
 export function Contact() {
-  const [status, setStatus] = useState<Status>("idle");
-  const formRef = useRef<HTMLFormElement>(null);
+  const reduceMotion = useReducedMotion();
+  const sectionRef = useRef<HTMLElement>(null);
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    const fd = new FormData(e.currentTarget);
-    const name = fd.get("name") as string;
-    const message = fd.get("message") as string;
-    const subject = encodeURIComponent(`Portfolio contact from ${name}`);
-    const body = encodeURIComponent(message);
+  // Scroll progress across the section's pass through the viewport
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"],
+  });
 
-    setStatus("sending");
-    // Simulate a tiny delay then open the mailto link
-    setTimeout(() => {
-      window.location.href = `mailto:${site.email}?subject=${subject}&body=${body}`;
-      setStatus("sent");
-      formRef.current?.reset();
-    }, 400);
-  }
+  // The dynamic move: assembly zooms in a little as you scroll deeper,
+  // and the orbit ring slowly turns. Springs keep both buttery. Zoom tops
+  // out modestly so the scaled assembly stays inside its clearance.
+  const scaleRaw = useTransform(scrollYProgress, [0, 0.35, 1], [0.85, 1, 1.06]);
+  const orbitRaw = useTransform(scrollYProgress, [0, 1], [-14, 10]);
+  const scale = useSpring(scaleRaw, { stiffness: 60, damping: 20 });
+  const orbitTurn = useSpring(orbitRaw, { stiffness: 60, damping: 20 });
+  // Links counter-rotate so they stay upright while the ring turns
+  const counterTurn = useTransform(orbitTurn, (d: number) => -d);
 
   return (
-    <Section
+    <section
+      ref={sectionRef}
       id="contact"
-      index="05"
-      title="Contact"
-      kicker="Have a project in mind? Let's make something great together."
+      // Negative bottom margin hangs the globe's lower arc over the footer;
+      // z-index floats it above the footer surface
+      className="section-flow relative z-10 -mb-40 scroll-mt-20 sm:-mb-48"
     >
-      <div className="grid grid-cols-1 gap-10 md:grid-cols-5">
-        {/* Form — 3 / 5 */}
-        <form
-          ref={formRef}
-          onSubmit={handleSubmit}
-          className="flex flex-col gap-5 md:col-span-3"
-        >
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field id="name" label="Name" type="text" placeholder="Jane Doe" required />
-            <Field
-              id="email"
-              label="Email"
-              type="email"
-              placeholder="jane@example.com"
-              required
-            />
-          </div>
-          <Field
-            id="message"
-            label="Message"
-            placeholder="Tell me about your project…"
-            required
-            multiline
-            rows={6}
+      {/* Ghost section index */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -right-10 top-24 select-none font-display font-bold leading-none text-transparent"
+        style={{
+          fontSize: "clamp(14rem, 30vw, 26rem)",
+          WebkitTextStroke: "1px rgba(255,255,255,0.04)",
+        }}
+      >
+        05
+      </span>
+
+      {/* ── Ambient star chart — concentric orbit rings radiating from the
+          globe's position, faint star specks, and chart annotations ── */}
+      <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+        {/* Concentric orbit rings, centred where the globe sits */}
+        {[
+          { size: "min(60vw, 44rem)", dashed: false, opacity: 0.22 },
+          { size: "min(78vw, 58rem)", dashed: true, opacity: 0.16 },
+          { size: "min(98vw, 74rem)", dashed: false, opacity: 0.1 },
+        ].map((ring) => (
+          <div
+            key={ring.size}
+            className="absolute left-1/2 top-[58%] -translate-x-1/2 -translate-y-1/2 rounded-full border border-[var(--color-border)]"
+            style={{
+              width: ring.size,
+              height: ring.size,
+              opacity: ring.opacity,
+              borderStyle: ring.dashed ? "dashed" : "solid",
+            }}
           />
-
-          <div className="flex items-center gap-4">
-            <button
-              type="submit"
-              disabled={status === "sending" || status === "sent"}
-              className={cn(
-                "rounded-full px-6 py-3 text-sm font-medium transition-all",
-                status === "sent"
-                  ? "bg-[var(--color-online)] text-[#050505]"
-                  : "bg-[var(--color-accent)] text-[#050505] hover:bg-[var(--color-accent-bright)] disabled:opacity-60",
-              )}
-            >
-              {status === "sending"
-                ? "Opening mail client…"
-                : status === "sent"
-                  ? "✓ Message ready"
-                  : "Send message →"}
-            </button>
-            <span className="label-system text-[var(--color-subtle)]">
-              No tracking. No spam.
-            </span>
-          </div>
-        </form>
-
-        {/* Sidebar — 2 / 5 */}
-        <aside className="flex flex-col gap-8 md:col-span-2">
-          <div className="flex flex-col gap-3">
-            <span className="label-system text-[var(--color-subtle)]">Direct</span>
-            <a
-              href={`mailto:${site.email}`}
-              className="group text-sm text-[var(--color-muted)] transition-colors hover:text-[var(--color-foreground)]"
-            >
-              <span className="break-all">{site.email}</span>
-              <span className="ml-1 text-[var(--color-subtle)] transition-colors group-hover:text-[var(--color-accent)]">
-                ↗
-              </span>
-            </a>
-          </div>
-
-          <div className="h-px bg-[var(--color-border)]" />
-
-          <div className="flex flex-col gap-3">
-            <span className="label-system text-[var(--color-subtle)]">Elsewhere</span>
-            <ul className="flex flex-col gap-2">
-              {socials.map((s) => (
-                <li key={s.label}>
-                  <a
-                    href={s.href}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="group flex items-center gap-3 text-sm text-[var(--color-muted)] transition-colors hover:text-[var(--color-foreground)]"
-                  >
-                    <span className="label-system w-14 text-[var(--color-subtle)]">
-                      {s.label}
-                    </span>
-                    <span className="text-[var(--color-subtle)] transition-colors group-hover:text-[var(--color-accent)]">
-                      {s.handle}
-                    </span>
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          <div className="h-px bg-[var(--color-border)]" />
-
-          {/* Availability blurb */}
-          <div className="rounded-xl border border-[var(--color-border)] bg-[var(--color-surface-2)] p-4">
-            <span className="label-system flex items-center gap-1.5 text-[var(--color-online)]">
-              <span className="size-1.5 rounded-full bg-[var(--color-online)]" />
-              {site.available ? "Available for new projects" : "Currently booked"}
-            </span>
-            <p className="mt-2 text-xs leading-relaxed text-[var(--color-subtle)]">
-              {site.available
-                ? "I'm open to freelance contracts and full-time opportunities starting Q3 2026."
-                : "I'm currently at full capacity. Feel free to reach out for future collaborations."}
-            </p>
-          </div>
-        </aside>
+        ))}
+        {/* Scattered star specks */}
+        <div
+          className="absolute inset-0 opacity-[0.35]"
+          style={{
+            backgroundImage: `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><circle cx='24' cy='40' r='0.8' fill='white' opacity='0.5'/><circle cx='150' cy='22' r='0.6' fill='white' opacity='0.35'/><circle cx='196' cy='120' r='0.9' fill='white' opacity='0.45'/><circle cx='80' cy='170' r='0.5' fill='white' opacity='0.3'/><circle cx='120' cy='90' r='0.7' fill='white' opacity='0.25'/></svg>")`,
+            maskImage:
+              "radial-gradient(90% 85% at 50% 55%, black 20%, transparent 100%)",
+            WebkitMaskImage:
+              "radial-gradient(90% 85% at 50% 55%, black 20%, transparent 100%)",
+          }}
+        />
+        {/* Constellation crosses at chart corners */}
+        <span className="absolute left-8 top-32 hidden font-mono text-[0.6rem] text-[var(--color-faint)] lg:block">
+          +
+        </span>
+        <span className="absolute bottom-40 right-12 hidden font-mono text-[0.6rem] text-[var(--color-faint)] lg:block">
+          +
+        </span>
+        <span className="absolute left-16 bottom-56 hidden font-mono text-[0.6rem] text-[var(--color-faint)] lg:block">
+          +
+        </span>
+        {/* Chart annotation, vertical on the left edge */}
+        <span
+          className="absolute left-9 top-1/2 hidden -translate-y-1/2 select-none font-mono text-[0.55rem] tracking-[0.45em] text-[var(--color-faint)] lg:block"
+          style={{ writingMode: "vertical-rl" }}
+        >
+          STAR CHART · SIGNAL RANGE ∞
+        </span>
       </div>
-    </Section>
-  );
-}
 
-/* ─── helpers ─────────────────────────────────────────────────────────────── */
+      <div className="container-page relative pb-24 pt-20 sm:pb-28 sm:pt-24 lg:pt-28">
+        {/* Section header */}
+        <motion.header
+          initial={reduceMotion ? false : { opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.7, ease: EASE }}
+          className="mb-20 flex flex-col items-center gap-3 text-center sm:mb-24"
+        >
+          <span className="label-system flex items-center gap-2">
+            <span className="text-[var(--color-accent)]">05</span>
+            <span className="h-px w-8 bg-[var(--color-border-strong)]" />
+            contact
+          </span>
+          <h2 className="font-display text-5xl font-medium tracking-tight sm:text-6xl">
+            Contact<span className="text-[var(--color-accent)]">.</span>
+          </h2>
+        </motion.header>
 
-interface FieldProps {
-  id: string;
-  label: string;
-  type?: string;
-  placeholder?: string;
-  required?: boolean;
-  multiline?: boolean;
-  rows?: number;
-}
+        {/* ── Globe + orbiting links — one scroll-scaled assembly ── */}
+        <motion.div
+          style={reduceMotion ? undefined : { scale }}
+          className="relative mx-auto flex w-fit flex-col items-center"
+        >
+          <div className="relative">
+            <HeroGlobe className="size-[min(84vw,38rem)]" />
 
-function Field({
-  id,
-  label,
-  type = "text",
-  placeholder,
-  required,
-  multiline,
-  rows,
-}: FieldProps) {
-  const shared =
-    "w-full rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-surface-2)] px-4 py-3 text-sm text-[var(--color-foreground)] placeholder:text-[var(--color-subtle)] transition-colors focus:border-[var(--color-accent)] focus:outline-none";
+            {/* Orbit ring — a faint dashed circle the links ride on */}
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 rounded-full border border-dashed border-[var(--color-border)] opacity-40"
+              style={{ transform: `scale(${ORBIT})` }}
+            />
 
-  return (
-    <div className="flex flex-col gap-2">
-      <label htmlFor={id} className="label-system text-[var(--color-subtle)]">
-        {label}
-      </label>
-      {multiline ? (
-        <textarea
-          id={id}
-          name={id}
-          rows={rows}
-          placeholder={placeholder}
-          required={required}
-          className={cn(shared, "resize-none")}
-        />
-      ) : (
-        <input
-          id={id}
-          name={id}
-          type={type}
-          placeholder={placeholder}
-          required={required}
-          className={shared}
-        />
-      )}
-    </div>
+            {/* The satellites: each link parked at its angle on the orbit.
+                The whole ring rotates with scroll; each chip counter-rotates
+                to stay upright. */}
+            <motion.div
+              style={reduceMotion ? undefined : { rotate: orbitTurn }}
+              className="absolute inset-0"
+            >
+              {socials.map((s, i) => {
+                // Distribute evenly, starting from the top
+                const angle = -90 + (360 / socials.length) * i;
+                const rad = (angle * Math.PI) / 180;
+                const x = 50 + 50 * ORBIT * Math.cos(rad);
+                const y = 50 + 50 * ORBIT * Math.sin(rad);
+                return (
+                  <motion.div
+                    key={s.label}
+                    className="absolute"
+                    style={{
+                      left: `${x}%`,
+                      top: `${y}%`,
+                      ...(reduceMotion ? {} : { rotate: counterTurn }),
+                    }}
+                  >
+                    <motion.a
+                      href={s.href}
+                      target={s.href.startsWith("mailto:") ? undefined : "_blank"}
+                      rel="noreferrer"
+                      initial={reduceMotion ? false : { opacity: 0, scale: 0.6 }}
+                      whileInView={{ opacity: 1, scale: 1 }}
+                      viewport={{ once: true, amount: 0.4 }}
+                      transition={{ duration: 0.6, ease: EASE, delay: 0.15 + i * 0.1 }}
+                      className="group flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 whitespace-nowrap bg-[var(--color-bg)]/80 px-3 py-1.5 backdrop-blur-sm"
+                    >
+                      <span className="font-mono text-[0.6rem] uppercase tracking-[0.22em] text-[var(--color-subtle)] transition-colors duration-300 group-hover:text-[var(--color-accent)]">
+                        {s.label}
+                      </span>
+                      <span className="text-xs text-[var(--color-muted)] transition-colors duration-300 group-hover:text-[var(--color-foreground)]">
+                        {s.handle}
+                      </span>
+                    </motion.a>
+                  </motion.div>
+                );
+              })}
+            </motion.div>
+          </div>
+
+          {/* Quote beneath the globe */}
+          <motion.p
+            initial={reduceMotion ? false : { opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, ease: EASE, delay: 0.3 }}
+            className="pointer-events-none mt-20 text-center font-mono text-[0.65rem] uppercase tracking-[0.3em] text-[var(--color-subtle)] sm:mt-24"
+          >
+            {/* `·` separators from the CMS render in the accent colour */}
+            {contact.quote.split("·").map((part, i, arr) => (
+              <span key={i}>
+                {part.trim()}
+                {i < arr.length - 1 && (
+                  <span className="text-[var(--color-accent)]"> · </span>
+                )}
+              </span>
+            ))}
+          </motion.p>
+        </motion.div>
+      </div>
+    </section>
   );
 }

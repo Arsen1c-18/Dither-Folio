@@ -15,13 +15,6 @@ const EASE = [0.22, 1, 0.36, 1] as const;
  * The achievement is a stamped commendation document with crop-mark corners.
  */
 
-// Same ordered-dither tile used on the About portrait — keeps the treatment consistent
-const DITHER_TILE = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='4' height='4'><rect width='1' height='1' x='0' y='0' fill='black'/><rect width='1' height='1' x='2' y='2' fill='black'/><rect width='1' height='1' x='2' y='0' fill='black' opacity='0.5'/><rect width='1' height='1' x='0' y='2' fill='black' opacity='0.5'/></svg>")`;
-
-// Soft radial mask so each role image dissolves into the card edges
-const IMAGE_MASK =
-  "radial-gradient(85% 85% at 50% 50%, black 55%, transparent 100%)";
-
 type ExperienceItem = (typeof experience)[number];
 
 // Newest first, like a log
@@ -179,10 +172,14 @@ export function Experience() {
   );
 }
 
-/* ─── Achievement — minimal label/value, same language as About's NOW block ── */
+/* ─── Achievements — a stamped commendation document, crop-mark corners ────── */
 
 function CommendationCard() {
   const reduceMotion = useReducedMotion();
+  // Every achievement across all roles, newest role first (records order)
+  const achievements = records.flatMap((r) => r.achievements ?? []);
+
+  if (achievements.length === 0) return null;
 
   return (
     <motion.div
@@ -190,14 +187,65 @@ function CommendationCard() {
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, amount: 0.2 }}
       transition={{ duration: 0.7, ease: EASE, delay: 0.15 }}
-      className="relative z-10 mt-12 hidden max-w-sm flex-col gap-1.5 border-t border-[var(--color-border)] pt-6 lg:flex"
+      className="group/comm relative z-10 mt-12 hidden max-w-sm lg:block"
     >
-      <span className="label-system text-[0.6rem] text-[var(--color-accent)]">
-        ACHIEVEMENT
-      </span>
-      <span className="font-mono text-sm text-[var(--color-muted)]">
-        1st — Build with AI Hackathon
-      </span>
+      {/* Crop-mark corners */}
+      {[
+        "left-0 top-0 border-l border-t",
+        "right-0 top-0 border-r border-t",
+        "bottom-0 left-0 border-b border-l",
+        "bottom-0 right-0 border-b border-r",
+      ].map((pos) => (
+        <span
+          key={pos}
+          aria-hidden
+          className={`absolute size-3 border-[var(--color-border-strong)] transition-colors duration-500 group-hover/comm:border-[var(--color-accent)]/60 ${pos}`}
+        />
+      ))}
+
+      <div className="flex flex-col gap-4 p-5">
+        {/* Header — medal emblem + label */}
+        <div className="flex items-center gap-3">
+          {/* Laurel medal — accent, like the org emblems */}
+          <svg
+            viewBox="0 0 24 24"
+            className="size-7 shrink-0 text-[var(--color-accent)]"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
+            <circle cx="12" cy="9" r="5" />
+            <path d="M9.5 9l1.8 1.8L14.8 7.4" />
+            <path d="M9 13.5L7 21l5-2.6L17 21l-2-7.5" />
+          </svg>
+          <div className="flex flex-col">
+            <span className="label-system text-[0.6rem] text-[var(--color-accent)]">
+              {achievements.length === 1 ? "ACHIEVEMENT" : "ACHIEVEMENTS"}
+            </span>
+            <span className="font-mono text-[0.55rem] tracking-[0.2em] text-[var(--color-faint)]">
+              {String(achievements.length).padStart(2, "0")} ON RECORD
+            </span>
+          </div>
+        </div>
+
+        {/* Entries */}
+        <ul className="flex flex-col">
+          {achievements.map((a, i) => (
+            <li
+              key={a}
+              className="flex items-baseline gap-3 border-t border-dashed border-[var(--color-border)] py-2.5 font-mono text-sm text-[var(--color-muted)] transition-colors duration-300 hover:text-[var(--color-foreground)]"
+            >
+              <span className="text-[0.6rem] text-[var(--color-faint)]">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              {a}
+            </li>
+          ))}
+        </ul>
+      </div>
     </motion.div>
   );
 }
@@ -276,22 +324,27 @@ function TimelineRecord({
           </span>
         </button>
 
-        {/* Record body */}
+        {/* Record body — emblem sits right-aligned beside the text */}
         <button
           onClick={() => setIsExpanded(!isExpanded)}
           tabIndex={-1}
-          className="w-full px-5 pb-5 pt-4 text-left sm:px-6 sm:pb-6"
+          className="flex w-full items-start justify-between gap-5 px-5 pb-5 pt-4 text-left sm:px-6 sm:pb-6"
         >
-          <h3 className="font-display text-2xl font-medium tracking-tight text-[var(--color-foreground)] transition-colors duration-300 group-hover:text-[var(--color-accent)] sm:text-[1.7rem]">
-            {item.role}
-          </h3>
-          <p className="mt-1 font-mono text-xs uppercase tracking-[0.14em] text-[var(--color-accent)]">
-            {item.org}
-          </p>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-display text-2xl font-medium tracking-tight text-[var(--color-foreground)] transition-colors duration-300 group-hover:text-[var(--color-accent)] sm:text-[1.7rem]">
+              {item.role}
+            </h3>
+            <p className="mt-1 font-mono text-xs uppercase tracking-[0.14em] text-[var(--color-accent)]">
+              {item.org}
+            </p>
 
-          <p className="mt-3.5 max-w-xl text-sm leading-relaxed text-[var(--color-muted)]">
-            {item.summary}
-          </p>
+            <p className="mt-3.5 max-w-xl text-sm leading-relaxed text-[var(--color-muted)]">
+              {item.summary}
+            </p>
+          </div>
+
+          {/* Org emblem — right-aligned, one symbol per organisation */}
+          <OrgEmblem id={item.id} org={item.org} />
         </button>
 
         {/* Expandable details section */}
@@ -304,10 +357,10 @@ function TimelineRecord({
               transition={{ duration: 0.4, ease: EASE }}
               className="overflow-hidden"
             >
-              <div className="border-t border-dashed border-[var(--color-border)] px-5 pb-5 pt-4 sm:px-6 sm:pb-6">
+              <div className="flex flex-col gap-5 border-t border-dashed border-[var(--color-border)] px-5 pb-5 pt-4 sm:px-6 sm:pb-6">
                 {/* Skills developed during this role */}
                 {item.skills && item.skills.length > 0 && (
-                  <div className="mb-5">
+                  <div>
                     <h4 className="mb-3 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-[var(--color-subtle)]">
                       Skills
                     </h4>
@@ -326,13 +379,25 @@ function TimelineRecord({
                   </div>
                 )}
 
-                {/* Per-role dithered image */}
-                <div className="mt-5">
-                  <h4 className="mb-3 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-[var(--color-subtle)]">
-                    Snapshot
-                  </h4>
-                  <RecordImage id={item.id} alt={item.org} />
-                </div>
+                {/* Achievements — notable wins during this role */}
+                {item.achievements && item.achievements.length > 0 && (
+                  <div>
+                    <h4 className="mb-3 font-mono text-[0.62rem] uppercase tracking-[0.16em] text-[var(--color-subtle)]">
+                      Achievements
+                    </h4>
+                    <ul className="flex flex-col gap-2">
+                      {item.achievements.map((a) => (
+                        <li
+                          key={a}
+                          className="flex items-baseline gap-2.5 font-mono text-[0.72rem] tracking-[0.04em] text-[var(--color-muted)]"
+                        >
+                          <span className="text-[var(--color-accent)]">★</span>
+                          {a}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </motion.div>
           )}
@@ -342,35 +407,61 @@ function TimelineRecord({
   );
 }
 
-/* ─── Dithered role image ─────────────────────────────────────────────────── */
+/* ─── Org emblems — one symbol per organisation, right-aligned ────────────── */
 
-function RecordImage({ id, alt }: { id: string; alt: string }) {
+/**
+ * Keyed by record id: exp-01 Inoticx (graphic design — pen-tool nib),
+ * exp-02 GDG (capsule-bracket mark), exp-03 E-Cell (business — growth bars
+ * with trend arrow), exp-04 Shaibya (code — angular brackets). All emblems
+ * render in the accent red, brightening slightly on hover.
+ */
+function OrgEmblem({ id, org }: { id: string; org: string }) {
   return (
-    <div
-      aria-label={alt}
+    <span
+      aria-label={org}
       role="img"
-      className="relative hidden size-28 shrink-0 overflow-hidden transition-transform duration-500 group-hover:scale-[1.04] sm:block lg:size-36"
+      className="mt-1 hidden size-16 shrink-0 items-center justify-center border border-[var(--color-border)] text-[var(--color-accent)] transition-colors duration-500 group-hover:border-[var(--color-accent)]/40 group-hover:text-[var(--color-accent-bright)] sm:flex lg:size-20"
     >
-      <div
-        className="absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: `url(/experience/${id}.png)`,
-          maskImage: IMAGE_MASK,
-          WebkitMaskImage: IMAGE_MASK,
-          mixBlendMode: "lighten",
-          opacity: 0.9,
-        }}
-      />
-      {/* Live-dither shimmer on hover */}
-      <div
-        className="absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-60 dither-flicker"
-        style={{
-          backgroundImage: DITHER_TILE,
-          backgroundSize: "4px 4px",
-          maskImage: IMAGE_MASK,
-          WebkitMaskImage: IMAGE_MASK,
-        }}
-      />
-    </div>
+      {id === "exp-01" && (
+        /* Pen tool — graphic design */
+        <svg viewBox="0 0 24 24" className="size-8 lg:size-9" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinejoin="round">
+          <path d="M12 3l6 8-6 10L6 11z" />
+          <circle cx="12" cy="11" r="1.8" />
+          <path d="M12 3v6.2" strokeLinecap="round" />
+        </svg>
+      )}
+      {id === "exp-02" && (
+        /* GDG capsule-bracket mark (from Reference images/gdg.png) — two
+           chevrons of round-capped capsules, offset at the elbow so the
+           signature notch seam shows. */
+        <svg
+          viewBox="0 0 96 52"
+          className="h-7 w-12 lg:h-8 lg:w-14"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="13"
+          strokeLinecap="round"
+        >
+          <path d="M37 11L16 25" />
+          <path d="M14 28l21 14" />
+          <path d="M59 11l21 14" />
+          <path d="M82 28L61 42" />
+        </svg>
+      )}
+      {id === "exp-03" && (
+        /* Growth chart — business / entrepreneurship */
+        <svg viewBox="0 0 24 24" className="size-8 lg:size-9" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 20V14M9.5 20v-9M15 20v-6M20 20V8" />
+          <path d="M4 9l6-4 4 3 5-5" />
+          <path d="M19 3h2v2" />
+        </svg>
+      )}
+      {id === "exp-04" && (
+        /* Angular brackets — engineering */
+        <span className="font-mono text-xl font-medium tracking-tight lg:text-2xl">
+          {"</>"}
+        </span>
+      )}
+    </span>
   );
 }
