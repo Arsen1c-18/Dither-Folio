@@ -100,6 +100,9 @@ export const portfolioSchema = z.object({
   about: z.object({
     bio: z.array(z.string()),
     stats: z.array(z.object({ label: z.string(), value: z.string() })),
+    now: z
+      .array(z.object({ label: z.string(), value: z.string() }))
+      .optional(),
   }),
   /** Contact + footer copy. */
   contact: z.object({ quote: z.string().optional() }).optional(),

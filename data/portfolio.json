@@ -125,7 +125,7 @@
       },
       {
         "label": "Projects shipped",
-        "value": "5+"
+        "value": "15+"
       },
       {
         "label": "Open-source contributions",
@@ -134,6 +134,20 @@
       {
         "label": "Cups of coffee",
         "value": "∞"
+      }
+    ],
+    "now": [
+      {
+        "label": "NOW",
+        "value": "Building full-stack AI applications"
+      },
+      {
+        "label": "LEARNING",
+        "value": "NestJS, PostgreSQL & System Design"
+      },
+      {
+        "label": "OFF-HOURS",
+        "value": "Designing interfaces, Hackathons & Games"
       }
     ]
   },

@@ -30,14 +30,15 @@ const AboutField = dynamic(() => import("@/components/fx/AboutField"), {
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-// Edit these to update the NOW block (not dashboard-managed).
-const NOW = [
+// Default NOW block copy — overridden by `about.now` from the dashboard.
+const NOW_FALLBACK = [
   { label: "NOW", value: "Building scalable backend systems" },
   { label: "LEARNING", value: "LLM infra & retrieval systems" },
   { label: "OFF-HOURS", value: "PL theory papers & WebGL generative art" },
 ];
 
 export function About() {
+  const reduce = useReducedMotion();
   return (
     <Section
       id="about"
@@ -46,7 +47,13 @@ export function About() {
     >
       <ArcBackdrop />
 
-      <div className="relative">
+      <motion.div
+        className="relative"
+        initial={reduce ? false : { opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.15 }}
+        transition={{ duration: 0.9, ease: EASE }}
+      >
         <DossierHeader />
 
         <div className="grid grid-cols-1 items-start gap-10 md:grid-cols-5 md:gap-12">
@@ -56,7 +63,7 @@ export function About() {
 
         <NowBlock />
         <SocialLinks />
-      </div>
+      </motion.div>
     </Section>
   );
 }
@@ -169,15 +176,16 @@ function Narrative() {
 /* ─── NOW block — current focus, mono dossier styling ─────────────────────── */
 
 function NowBlock() {
+  const now = about.now && about.now.length > 0 ? about.now : NOW_FALLBACK;
   return (
     <div className="mt-12 grid grid-cols-1 gap-4 border-t border-[var(--color-border)] pt-8 sm:grid-cols-3 md:mt-16">
-      {NOW.map((item, i) => (
+      {now.map((item, i) => (
         <div
           key={item.label}
           className={`flex flex-col gap-1.5 ${
             i === 1
               ? "sm:items-center sm:text-center"
-              : i === NOW.length - 1
+              : i === now.length - 1
                 ? "sm:items-end sm:text-right"
                 : ""
           }`}
@@ -207,8 +215,8 @@ function SocialLinks() {
           rel="noreferrer"
           className="group flex items-center gap-2 rounded-full border border-[var(--color-border-strong)] px-4 py-2 text-xs text-[var(--color-muted)] transition-all hover:border-[var(--color-foreground)] hover:text-[var(--color-foreground)]"
         >
-          <span className="label-system w-12">{s.label}</span>
-          <span className="text-[var(--color-subtle)] transition-colors group-hover:text-[var(--color-accent)]">
+          <span className="label-system shrink-0 whitespace-nowrap">{s.label}</span>
+          <span className="whitespace-nowrap text-[var(--color-subtle)] transition-colors group-hover:text-[var(--color-accent)]">
             {s.handle}
           </span>
         </a>

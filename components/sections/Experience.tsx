@@ -65,7 +65,13 @@ export function Experience() {
 
       <div className="container-page relative py-20 sm:py-24 lg:py-28">
         {/* Translucent container — sharp document edge, not a rounded panel */}
-        <div className="relative border border-[var(--color-border)]/50 bg-[var(--color-bg)]/60 p-6 backdrop-blur-md sm:p-10 lg:p-14">
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.08 }}
+          transition={{ duration: 0.9, ease: EASE }}
+          className="relative border border-[var(--color-border)]/50 bg-[var(--color-bg)]/60 p-6 backdrop-blur-md sm:p-10 lg:p-14"
+        >
 
         {/* Dossier file header — same strip as About */}
         <div className="mb-12 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-y border-[var(--color-border-strong)] py-2.5 font-mono text-[0.65rem] tracking-[0.15em] text-[var(--color-subtle)] md:mb-16">
@@ -166,7 +172,7 @@ export function Experience() {
           Always learning. Always building.
           <span className="h-px w-10 bg-[var(--color-border-strong)] sm:w-16" />
         </motion.p>
-        </div> {/* Close translucent container */}
+        </motion.div> {/* Close translucent container */}
       </div> {/* Close container-page */}
     </section>
   );

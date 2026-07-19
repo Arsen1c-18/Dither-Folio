@@ -386,7 +386,13 @@ export function Projects() {
         {/* The wheel stage (desktop) — flat compositing; the cylindrical
             projection is computed per card (x + scaleX only), so no CSS
             camera exists to introduce vertical keystone. */}
-        <div className="relative hidden min-h-0 w-full flex-1 items-center justify-center overflow-hidden md:flex">
+        <motion.div
+          initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, amount: 0.15 }}
+          transition={{ duration: 0.9, ease: EASE, delay: 0.1 }}
+          className="relative hidden min-h-0 w-full flex-1 items-center justify-center overflow-hidden md:flex"
+        >
           {/* Dashed horizontal track behind the cards */}
           <span
             aria-hidden
@@ -401,13 +407,17 @@ export function Projects() {
               stripIndex={stripIndex}
             />
           ))}
-        </div>
+        </motion.div>
 
         {/* Mobile: vertical stack */}
         <div className="container-page relative z-20 flex flex-col gap-6 md:hidden">
           {projects.map((project, idx) => (
-            <a
+            <motion.a
               key={project.id}
+              initial={reduceMotion ? false : { opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.7, ease: EASE }}
               href={project.href ?? "#"}
               target="_blank"
               rel="noreferrer"
@@ -446,7 +456,7 @@ export function Projects() {
                   </li>
                 ))}
               </ul>
-            </a>
+            </motion.a>
           ))}
         </div>
       </div>

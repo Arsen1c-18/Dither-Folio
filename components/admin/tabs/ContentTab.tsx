@@ -12,6 +12,14 @@ import {
 import type { Project } from "@/types";
 import { SkillsEditor } from "@/components/admin/SkillsEditor";
 
+// Seed for the About NOW block when the JSON doesn't have one yet — mirrors
+// the built-in copy in components/sections/About.tsx.
+const DEFAULT_NOW = [
+  { label: "NOW", value: "Building scalable backend systems" },
+  { label: "LEARNING", value: "LLM infra & retrieval systems" },
+  { label: "OFF-HOURS", value: "PL theory papers & WebGL generative art" },
+];
+
 /**
  * Card-image control for one project: upload a file (stored under
  * public/projects/, dev-only), paste a path/URL, preview, and clear.
@@ -147,7 +155,17 @@ export function ContentTab() {
                 <TextField label="Role" value={x.role} onChange={(v) => update((d) => { d.experience[i].role = v; })} />
                 <TextField label="Org" value={x.org} onChange={(v) => update((d) => { d.experience[i].org = v; })} />
                 <TextField label="Period" value={x.period} onChange={(v) => update((d) => { d.experience[i].period = v; })} />
-                <IconButton onClick={() => update((d) => { d.experience.splice(i, 1); })} title="Remove">✕</IconButton>
+                <div className="flex items-center gap-1">
+                  <IconButton
+                    onClick={() => update((d) => { if (i > 0) { const [it] = d.experience.splice(i, 1); d.experience.splice(i - 1, 0, it); } })}
+                    title="Move up"
+                  >↑</IconButton>
+                  <IconButton
+                    onClick={() => update((d) => { if (i < d.experience.length - 1) { const [it] = d.experience.splice(i, 1); d.experience.splice(i + 1, 0, it); } })}
+                    title="Move down"
+                  >↓</IconButton>
+                  <IconButton onClick={() => update((d) => { d.experience.splice(i, 1); })} title="Remove">✕</IconButton>
+                </div>
               </div>
               <TextArea label="Summary" value={x.summary} onChange={(v) => update((d) => { d.experience[i].summary = v; })} rows={2} />
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -225,6 +243,19 @@ export function ContentTab() {
               <TextField label="Label" value={st.label} onChange={(v) => update((d) => { d.about.stats[i].label = v; })} />
               <TextField label="Value" value={st.value} onChange={(v) => update((d) => { d.about.stats[i].value = v; })} />
               <IconButton onClick={() => update((d) => { d.about.stats.splice(i, 1); })} title="Remove">✕</IconButton>
+            </div>
+          ))}
+        </div>
+        <div className="mt-2 flex items-center justify-between">
+          <span className="label-system text-[var(--color-subtle)]">Now block</span>
+          <IconButton onClick={() => update((d) => { d.about.now = [...(d.about.now ?? DEFAULT_NOW), { label: "LABEL", value: "" }]; })}>+ Add</IconButton>
+        </div>
+        <div className="flex flex-col gap-3">
+          {(about.now ?? DEFAULT_NOW).map((n, i) => (
+            <div key={i} className="grid grid-cols-1 gap-3 rounded-lg border border-[var(--color-border)] p-3 sm:grid-cols-[1fr_2fr_auto] sm:items-end">
+              <TextField label="Label" value={n.label} onChange={(v) => update((d) => { d.about.now = (d.about.now ?? DEFAULT_NOW).map((x, j) => j === i ? { ...x, label: v } : x); })} />
+              <TextField label="Value" value={n.value} onChange={(v) => update((d) => { d.about.now = (d.about.now ?? DEFAULT_NOW).map((x, j) => j === i ? { ...x, value: v } : x); })} />
+              <IconButton onClick={() => update((d) => { d.about.now = (d.about.now ?? DEFAULT_NOW).filter((_, j) => j !== i); })} title="Remove">✕</IconButton>
             </div>
           ))}
         </div>

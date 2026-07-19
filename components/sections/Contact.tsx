@@ -117,7 +117,13 @@ export function Contact() {
         </span>
       </div>
 
-      <div className="container-page relative pb-24 pt-20 sm:pb-28 sm:pt-24 lg:pt-28">
+      <motion.div
+        initial={reduceMotion ? false : { opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, amount: 0.1 }}
+        transition={{ duration: 0.9, ease: EASE }}
+        className="container-page relative pb-24 pt-20 sm:pb-28 sm:pt-24 lg:pt-28"
+      >
         {/* Section header */}
         <motion.header
           initial={reduceMotion ? false : { opacity: 0, y: 16 }}
@@ -216,7 +222,7 @@ export function Contact() {
             ))}
           </motion.p>
         </motion.div>
-      </div>
+      </motion.div>
     </section>
   );
 }
