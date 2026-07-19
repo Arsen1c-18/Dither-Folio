@@ -122,7 +122,7 @@ function StripCard({
         zIndex,
         pointerEvents,
       }}
-      className="absolute h-[52vh] max-h-[30rem] w-[62vw] max-w-2xl"
+      className="absolute h-[62vh] max-h-[36rem] w-[74vw] max-w-4xl"
     >
       {/* ── Back face — what shows while the card rides the far side of
           the drum (scaleX < 0 mirrors the element; the inner scaleX(-1)
@@ -163,7 +163,7 @@ function StripCard({
         </span>
 
         {/* ── Left: record details ── */}
-        <div className="relative z-10 flex w-[55%] flex-col p-7 sm:p-8">
+        <div className="relative z-10 flex w-[52%] flex-col p-7 sm:p-8">
           {/* Record strip */}
           <div className="flex items-center justify-between border-b border-[var(--color-border)] pb-2.5 font-mono text-[0.62rem] tracking-[0.16em] text-[var(--color-subtle)]">
             <span className="flex items-center gap-3">
@@ -218,7 +218,7 @@ function StripCard({
             transform: "rotateY(-14deg)",
             transformOrigin: "left center",
           }}
-          className="absolute inset-y-0 right-0 z-0 w-[45%] transform-gpu overflow-hidden border-l border-[var(--color-border)] bg-black/40"
+          className="absolute inset-y-0 right-0 z-0 w-[48%] transform-gpu overflow-hidden border-l border-[var(--color-border)] bg-black/40"
         >
           <ProjectImage project={project} idx={idx} />
         </div>
