@@ -114,14 +114,14 @@
   },
   "about": {
     "bio": [
-      "I'm {name} — a software engineer who cares equally about correctness and craft. I gravitate toward problems that sit at the intersection of distributed systems, developer experience, and machine learning.",
-      "When I'm not wiring up event-driven pipelines or tuning RAG retrieval strategies, you'll find me reading programming language theory papers or tinkering with generative art in WebGL.",
-      "I believe the best software is invisible — it quietly does what the user expects, scales without drama, and the developer who inherits it can still read it six months later."
+      "I'm Moksh Barapatre, a Full Stack Developer and UI Designer who loves building products that combine clean design with solid engineering. I enjoy creating modern web applications, AI-powered solutions, and interactive digital experiences that are fast, intuitive, and built to last.",
+      "As a third-year Computer Science student specializing in AI and Data Science, I've worked on production websites, hackathon-winning AI projects, and community initiatives through Google Developer Groups and E-Cell. Whether I'm designing interfaces or developing full-stack applications, I enjoy transforming ideas into polished, real-world products.",
+      "I believe the best software feels effortless to use and memorable to experience. I'm constantly learning, experimenting with new technologies, and refining my craft, always aiming to build products that solve meaningful problems while paying attention to every detail."
     ],
     "stats": [
       {
         "label": "Years of experience",
-        "value": "1+"
+        "value": "2+"
       },
       {
         "label": "Projects shipped",
@@ -147,14 +147,20 @@
     {
       "id": "exp-01",
       "role": "Graphic Design Intern",
-      "org": "Inoticx",
-      "period": "TBD",
-      "summary": "Details coming soon.",
+      "org": "Innoticx",
+      "period": "Sept '25 – Dec '25",
+      "summary": "Designed branding assets, social media creatives, marketing visuals, and digital content while collaborating with the design team to deliver consistent visual communication across multiple campaigns.",
       "skills": [
         "Figma",
+        "Adobe Photoshop",
         "Adobe Illustrator",
         "Brand Design",
-        "Social Media Creatives"
+        "Social Media Design"
+      ],
+      "achievements": [
+        "Designed Brand Assets",
+        "Marketing Campaigns",
+        "Client Deliverables"
       ]
     },
     {
@@ -162,14 +168,18 @@
       "role": "Member",
       "org": "GDG RBU",
       "period": "TBD",
-      "summary": "Details coming soon.",
+      "current": true,
+      "summary": "Designed user interfaces, event branding, landing pages, and frontend experiences for developer-focused events while collaborating with organizers to deliver engaging digital experiences.",
       "skills": [
         "Community",
         "Event Design",
         "Collaboration"
       ],
       "achievements": [
-        "1st — Build with AI Hackathon"
+        "Organized Developer Events",
+        "Created Social Media Creatives",
+        "Built Landing Pages",
+        "Managed Frontend"
       ]
     },
     {
@@ -177,7 +187,7 @@
       "role": "Design Co-Lead",
       "org": "E-Cell RBU",
       "period": "TBD",
-      "summary": "Details coming soon.",
+      "summary": "Leading the visual identity of the entrepreneurship cell by designing event branding, promotional campaigns, social media creatives, and collaborative design systems for campus initiatives.",
       "skills": [
         "Design Leadership",
         "Team Management",
@@ -186,72 +196,98 @@
     },
     {
       "id": "exp-04",
-      "role": "Software Engineer",
+      "role": "Frontend Developer Intern",
       "org": "Shaibya Solutions",
-      "period": "TBD",
+      "period": "May '26 – Present",
       "current": true,
-      "summary": "Details coming soon.",
+      "summary": "Built responsive production-ready web applications using modern frontend technologies, translating designs into high-performance interfaces with smooth animations and scalable architecture.",
       "skills": [
-        "React",
         "Next.js",
-        "TypeScript",
-        "Node.js"
+        "React",
+        "Tailwind CSS",
+        "GSAP",
+        "Framer Motion",
+        "Sanity CMS"
+      ],
+      "achievements": [
+        "Client Deliverables",
+        "Responsive Development",
+        "Production Deployment",
+        "Cross-team Collaboration"
       ]
     }
+  ],
+  "achievements": [
+    "1st Position - Build with AI Hackathon"
   ],
   "projects": [
     {
       "id": "proj-01",
-      "title": "Synapse",
-      "description": "A retrieval-augmented chat platform with streaming responses and pluggable model backends.",
-      "year": "2025",
+      "title": "Revolution Fitness Gym",
+      "description": "A premium fitness website featuring immersive 3D visuals, fluid animations, and a CMS-driven experience designed to elevate the gym's digital presence.",
+      "year": "2026",
+      "category": "Web App",
+      "stack": [
+        "Next.js 15",
+        "React Three Fiber",
+        "Drei",
+        "GSAP",
+        "Framer Motion",
+        "Tailwind CSS",
+        "Sanity CMS"
+      ],
+      "href": "https://www.revolutionfitnesss.in/",
+      "image": "/projects/proj-01.jpg?v=1784491498505"
+    },
+    {
+      "id": "proj-02",
+      "title": "SafeDose",
+      "description": "An AI-powered pharmaceutical verification platform that detects counterfeit medicines, verifies authenticity, and provides multilingual assistance through intelligent analysis.",
+      "year": "2026",
+      "category": "Web App",
+      "stack": [
+        "Next.js",
+        "Python",
+        "FastAPI",
+        "Gemini",
+        "MongoDB",
+        "Tailwind CSS"
+      ],
+      "href": "https://build-with-ai-hackathon-miflmpensa-el.a.run.app/",
+      "image": "/projects/proj-02.jpg?v=1784491584292"
+    },
+    {
+      "id": "proj-03",
+      "title": "Petal",
+      "description": "An intelligent plant companion that identifies species, diagnoses diseases from leaf images, and delivers personalized care recommendations using computer vision.",
+      "year": "2026",
       "category": "ai-ml",
       "stack": [
         "Next.js",
         "Python",
-        "pgvector",
-        "Anthropic"
+        "FastAPI",
+        "TensorFlow",
+        "OpenCV",
+        "PostgreSQL"
       ],
-      "href": "#"
-    },
-    {
-      "id": "proj-02",
-      "title": "Meridian",
-      "description": "Real-time analytics dashboard visualizing millions of rows with sub-100ms interaction.",
-      "year": "2024",
-      "category": "web-apps",
-      "stack": [
-        "React",
-        "D3",
-        "ClickHouse"
-      ],
-      "href": "#"
-    },
-    {
-      "id": "proj-03",
-      "title": "Forge CLI",
-      "description": "A developer tool that scaffolds, lints, and deploys micro-services from a single config.",
-      "year": "2024",
-      "category": "tools",
-      "stack": [
-        "Go",
-        "Cobra",
-        "Docker"
-      ],
-      "href": "#"
+      "href": "https://petal-menstrual-health-platform.vercel.app/",
+      "image": "/projects/proj-03.jpg?v=1784491672974"
     },
     {
       "id": "proj-04",
-      "title": "Voxel",
-      "description": "An image-to-3D pipeline turning reference photos into printable meshes via a diffusion model.",
-      "year": "2023",
-      "category": "ai-ml",
+      "title": "Touchwood Furnitech",
+      "description": "A modern corporate website showcasing custom furniture solutions with responsive layouts, refined UI, and a seamless browsing experience.",
+      "year": "2026",
+      "category": "Web",
       "stack": [
-        "PyTorch",
-        "Three.js",
-        "FastAPI"
+        "Next.js",
+        "React",
+        "Tailwind CSS",
+        "TypeScript",
+        "Framer Motion"
       ],
-      "href": "#"
+      "href": "https://touchwoodfurnitech.com",
+      "image": "/projects/proj-04.jpg?v=1784491835343"
     }
   ],
   "skills": [
@@ -264,129 +300,129 @@
     },
     {
       "name": "Python",
-      "level": 88,
+      "level": 34,
       "category": "Languages",
       "icon": "python",
       "hidden": false
     },
     {
-      "name": "Go",
-      "level": 72,
-      "category": "Languages",
-      "icon": "go",
-      "hidden": false
-    },
-    {
       "name": "React / Next.js",
-      "level": 94,
+      "level": 65,
       "category": "Frontend",
       "icon": "nextdotjs",
       "hidden": false
     },
     {
       "name": "Three.js / WebGL",
-      "level": 68,
+      "level": 30,
       "category": "Frontend",
       "icon": "threedotjs",
       "hidden": false
     },
     {
       "name": "Node.js",
-      "level": 85,
+      "level": 68,
       "category": "Backend",
       "icon": "nodedotjs",
       "hidden": false
     },
     {
       "name": "PostgreSQL",
-      "level": 80,
+      "level": 22,
       "category": "Backend",
       "icon": "postgresql",
       "hidden": false
     },
     {
-      "name": "Docker / K8s",
-      "level": 76,
-      "category": "Infra",
-      "icon": "docker",
-      "hidden": true
-    },
-    {
-      "name": "LLMs / RAG",
-      "level": 82,
-      "category": "AI/ML",
-      "icon": "openai",
-      "hidden": true
-    },
-    {
       "name": "UI/UX Design",
-      "level": 80,
+      "level": 98,
       "category": "Design",
       "icon": "",
       "hidden": false
     },
     {
       "name": "Figma",
-      "level": 84,
+      "level": 99,
       "category": "Design",
       "icon": "figma",
       "hidden": false
     },
     {
       "name": "Adobe Illustrator",
-      "level": 72,
+      "level": 96,
       "category": "Design",
-      "icon": "adobeillustrator",
+      "icon": "adonisjs",
       "hidden": false
     },
     {
       "name": "Brand / Visual Identity",
-      "level": 75,
+      "level": 97,
       "category": "Design",
       "icon": "",
       "hidden": false
     },
     {
       "name": "Leadership",
-      "level": 80,
+      "level": 100,
       "category": "Soft Skills",
       "icon": "",
       "hidden": false
     },
     {
       "name": "Communication",
-      "level": 85,
+      "level": 93,
       "category": "Soft Skills",
       "icon": "",
       "hidden": false
     },
     {
       "name": "Team Management",
-      "level": 76,
+      "level": 90,
       "category": "Soft Skills",
       "icon": "",
       "hidden": false
     },
     {
       "name": "Git / GitHub",
-      "level": 90,
+      "level": 80,
       "category": "Software",
       "icon": "git",
       "hidden": false
     },
     {
       "name": "Linux",
-      "level": 82,
+      "level": 53,
       "category": "Software",
       "icon": "linux",
       "hidden": false
     },
     {
-      "name": "Blender",
-      "level": 55,
-      "category": "Software",
-      "icon": "blender",
-      "hidden": true
+      "name": "C++",
+      "level": 98,
+      "category": "Languages",
+      "icon": "cplusplus",
+      "hidden": false
+    },
+    {
+      "name": "Javascript",
+      "level": 76,
+      "category": "Frontend",
+      "icon": "javascript",
+      "hidden": false
+    },
+    {
+      "name": "Supabase",
+      "level": 90,
+      "category": "Backend",
+      "icon": "supabase",
+      "hidden": false
+    },
+    {
+      "name": "Nest js",
+      "level": 19,
+      "category": "Backend",
+      "icon": "nestjs",
+      "hidden": false
     }
   ]
 }

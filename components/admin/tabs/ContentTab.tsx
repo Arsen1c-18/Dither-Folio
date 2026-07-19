@@ -7,13 +7,10 @@ import {
   TextField,
   TextArea,
   Toggle,
-  Field,
   IconButton,
 } from "@/components/admin/fields";
-import type { ProjectCategory, Project } from "@/types";
+import type { Project } from "@/types";
 import { SkillsEditor } from "@/components/admin/SkillsEditor";
-
-const CATEGORIES: ProjectCategory[] = ["ai-ml", "web-apps", "tools"];
 
 /**
  * Card-image control for one project: upload a file (stored under
@@ -120,15 +117,7 @@ export function ContentTab() {
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-[2fr_1fr_1fr_auto] sm:items-end">
                 <TextField label="Title" value={p.title} onChange={(v) => update((d) => { d.projects[i].title = v; })} />
                 <TextField label="Year" value={p.year} onChange={(v) => update((d) => { d.projects[i].year = v; })} />
-                <Field label="Category">
-                  <select
-                    className="w-full rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-surface)] px-3 py-2 text-sm text-[var(--color-foreground)] outline-none focus:border-[var(--color-accent)]"
-                    value={p.category}
-                    onChange={(e) => update((d) => { d.projects[i].category = e.target.value as ProjectCategory; })}
-                  >
-                    {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </Field>
+                <TextField label="Category" value={p.category} onChange={(v) => update((d) => { d.projects[i].category = v; })} />
                 <IconButton onClick={() => update((d) => { d.projects.splice(i, 1); })} title="Remove">✕</IconButton>
               </div>
               <TextArea label="Description" value={p.description} onChange={(v) => update((d) => { d.projects[i].description = v; })} rows={2} />
@@ -175,6 +164,29 @@ export function ContentTab() {
                 />
               </div>
               <Toggle label="Current role" value={x.current ?? false} onChange={(v) => update((d) => { d.experience[i].current = v; })} />
+            </div>
+          ))}
+        </div>
+      </Group>
+
+      {/* Achievements — standalone commendation-card entries */}
+      <Group
+        title="Achievements"
+        action={
+          <IconButton onClick={() => update((d) => { d.achievements = [...(d.achievements ?? []), ""]; })}>
+            + Add
+          </IconButton>
+        }
+      >
+        <div className="flex flex-col gap-3">
+          {(data.achievements ?? []).map((a, i) => (
+            <div key={i} className="flex items-start gap-2">
+              <div className="flex-1">
+                <TextField label={`Achievement ${String(i + 1).padStart(2, "0")}`} value={a} onChange={(v) => update((d) => { d.achievements![i] = v; })} hint={i === 0 ? 'e.g. "1st — Build with AI Hackathon"' : undefined} />
+              </div>
+              <div className="pt-6">
+                <IconButton onClick={() => update((d) => { d.achievements!.splice(i, 1); })} title="Remove">✕</IconButton>
+              </div>
             </div>
           ))}
         </div>

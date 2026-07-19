@@ -63,10 +63,6 @@ const geom = (r: number) => {
   return { c, s: Math.sin(t), f };
 };
 
-// Same soft mask used on Experience snapshots — image dissolves into the panel
-const IMAGE_MASK =
-  "radial-gradient(90% 90% at 50% 50%, black 55%, transparent 100%)";
-
 /* ─── Single card on the strip ────────────────────────────────────────────── */
 
 function StripCard({
@@ -177,7 +173,7 @@ function StripCard({
               <span className="uppercase">{project.year}</span>
             </span>
             <span className="uppercase">
-              {project.category.replace("-", " / ")}
+              {project.category}
             </span>
           </div>
 
@@ -225,8 +221,6 @@ function StripCard({
           className="absolute inset-y-0 right-0 z-0 w-[45%] transform-gpu overflow-hidden border-l border-[var(--color-border)] bg-black/40"
         >
           <ProjectImage project={project} idx={idx} />
-          {/* Blend the fold edge into the card */}
-          <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-[var(--color-bg)]/80 via-transparent to-transparent" />
         </div>
       </motion.div>
     </motion.div>
@@ -264,13 +258,7 @@ function ProjectImage({ project, idx }: { project: Project; idx: number }) {
       {imageOk ? (
         <div
           className="absolute inset-0 bg-cover bg-center"
-          style={{
-            backgroundImage: `url(${src})`,
-            maskImage: IMAGE_MASK,
-            WebkitMaskImage: IMAGE_MASK,
-            mixBlendMode: "lighten",
-            opacity: 0.9,
-          }}
+          style={{ backgroundImage: `url(${src})` }}
         />
       ) : (
         <div className="absolute inset-0 flex items-center justify-center">
@@ -442,7 +430,7 @@ export function Projects() {
                   {project.title}
                 </h3>
                 <p className="mt-1 font-mono text-[0.65rem] uppercase tracking-[0.15em] text-[var(--color-accent)]">
-                  {project.category.replace("-", " / ")}
+                  {project.category}
                 </p>
                 <p className="mt-3 text-sm leading-relaxed text-[var(--color-muted)]">
                   {project.description}

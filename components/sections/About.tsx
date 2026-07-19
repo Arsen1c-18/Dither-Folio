@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
 import {
   motion,
@@ -225,34 +225,9 @@ function SocialLinks() {
 
 /* ─── Right: interactive tilt panel ───────────────────────────────────────── */
 
-// Drop your photo at public/me.jpg (or change this path). The card shows it
-// dithered on hover; if the file is missing the hover layer simply stays off.
-const PORTRAIT_SRC = "/me.png";
-
-// Bayer-style checker tile — overlaid on the photo to fake an ordered dither
-const DITHER_TILE = `url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='4' height='4'><rect width='1' height='1' x='0' y='0' fill='black'/><rect width='1' height='1' x='2' y='2' fill='black'/><rect width='1' height='1' x='2' y='0' fill='black' opacity='0.5'/><rect width='1' height='1' x='0' y='2' fill='black' opacity='0.5'/></svg>")`;
-
-// Blend mask: radial core intersected with per-edge linear fades so all
-// four sides of the photo dim out evenly into the field
-const PORTRAIT_MASK = [
-  "radial-gradient(46% 44% at 50% 42%, black 28%, rgba(0,0,0,0.55) 58%, transparent 85%)",
-  "linear-gradient(to bottom, transparent 12%, black 32%, black 68%, transparent 88%)",
-  "linear-gradient(to right, transparent 18%, black 36%, black 64%, transparent 82%)",
-].join(", ");
-const PORTRAIT_MASK_COMPOSITE = "intersect";
-
 function TiltPanel() {
   const reduce = useReducedMotion();
   const ref = useRef<HTMLDivElement>(null);
-  const [hovered, setHovered] = useState(false);
-  const [portraitOk, setPortraitOk] = useState(false);
-
-  // Probe for the portrait once so a missing file never flashes a broken image.
-  useEffect(() => {
-    const img = new Image();
-    img.onload = () => setPortraitOk(true);
-    img.src = PORTRAIT_SRC;
-  }, []);
 
   // Pointer position, normalised to [-0.5, 0.5] over the card.
   const px = useMotionValue(0);
@@ -277,7 +252,6 @@ function TiltPanel() {
   }
 
   function handleLeave() {
-    setHovered(false);
     animate(px, 0, { duration: 0.6, ease: EASE });
     animate(py, 0, { duration: 0.6, ease: EASE });
   }
@@ -294,7 +268,6 @@ function TiltPanel() {
       <motion.div
         ref={ref}
         onPointerMove={handleMove}
-        onPointerEnter={() => setHovered(true)}
         onPointerLeave={handleLeave}
         className="relative aspect-[4/5] overflow-hidden rounded-2xl border border-[var(--color-border-strong)] sm:aspect-[3/4] md:aspect-auto md:h-full md:min-h-[22rem] lg:min-h-[26rem]"
         style={{
@@ -315,45 +288,6 @@ function TiltPanel() {
         >
           <AboutField />
         </motion.div>
-
-        {/* Dithered portrait — dissolves into the field on hover */}
-        {portraitOk && (
-          <motion.div
-            aria-hidden
-            className="absolute inset-0"
-            initial={false}
-            animate={{ opacity: hovered ? 1 : 0 }}
-            transition={{ duration: 0.6, ease: EASE }}
-            style={{ translateZ: -20 }}
-          >
-            <div
-              className={`absolute inset-0 ${reduce ? "" : "portrait-jitter"}`}
-              style={{
-                backgroundImage: `url(${PORTRAIT_SRC})`,
-                backgroundSize: "auto 62%",
-                backgroundPosition: "center 42%",
-                backgroundRepeat: "no-repeat",
-                maskImage: PORTRAIT_MASK,
-                WebkitMaskImage: PORTRAIT_MASK,
-                maskComposite: PORTRAIT_MASK_COMPOSITE,
-                WebkitMaskComposite: "source-in",
-                mixBlendMode: "lighten",
-              }}
-            />
-            {/* Dither texture — 1px stepped jitter makes it constantly re-rasterize */}
-            <div
-              className={`absolute inset-0 opacity-50 ${reduce ? "" : "dither-flicker"}`}
-              style={{
-                backgroundImage: DITHER_TILE,
-                backgroundSize: "4px 4px",
-                maskImage: PORTRAIT_MASK,
-                WebkitMaskImage: PORTRAIT_MASK,
-                maskComposite: PORTRAIT_MASK_COMPOSITE,
-                WebkitMaskComposite: "source-in",
-              }}
-            />
-          </motion.div>
-        )}
 
         {/* Legibility scrim */}
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(120%_100%_at_50%_0%,rgba(5,5,5,0.35),rgba(5,5,5,0.82))]" />

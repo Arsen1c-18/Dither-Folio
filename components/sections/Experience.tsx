@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { motion, useReducedMotion, useScroll, useSpring, AnimatePresence } from "framer-motion";
-import { experience } from "@/constants/content";
+import { experience, achievements as standaloneAchievements } from "@/constants/content";
 import { DitherBackground } from "@/components/fx/DitherBackground";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -176,8 +176,8 @@ export function Experience() {
 
 function CommendationCard() {
   const reduceMotion = useReducedMotion();
-  // Every achievement across all roles, newest role first (records order)
-  const achievements = records.flatMap((r) => r.achievements ?? []);
+  // Standalone achievements from the CMS — independent of experience records
+  const achievements = standaloneAchievements;
 
   if (achievements.length === 0) return null;
 

@@ -1,8 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Favicon — an angular "M" monogram on a black tile, cut in the
-       site's mono style, with the MOKSH_ underscore as the accent-red
-       cursor. -->
-  <rect width="64" height="64" rx="14" fill="#050505"/>
-  <path d="M14 44V20h6l12 15 12-15h6v24h-7V31l-11 13-11-13v13z" fill="#f5f5f5"/>
-  <rect x="40" y="48" width="11" height="5" rx="1" fill="#ff3b3b"/>
+  <!-- Favicon — minimal four-pointed star on a dark tile. -->
+  <rect width="64" height="64" rx="14" fill="#0a0a0a"/>
+  <path d="M32 12c2 11 6 15 18 20-12 5-16 9-18 20-2-11-6-15-18-20 12-5 16-9 18-20z" fill="#ff3b3b"/>
 </svg>

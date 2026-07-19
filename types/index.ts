@@ -26,7 +26,7 @@ export interface ExperienceItem {
   achievements?: string[];
 }
 
-export type ProjectCategory = "ai-ml" | "web-apps" | "tools";
+export type ProjectCategory = string;
 
 export interface Project {
   id: string;
@@ -120,10 +120,18 @@ export interface AboutStat {
   value: string;
 }
 
+/** One entry of the NOW block under the About bio (e.g. NOW / LEARNING / OFF-HOURS). */
+export interface NowItem {
+  label: string;
+  value: string;
+}
+
 export interface AboutContent {
   /** Paragraphs; the token `{name}` is replaced with the owner's name. */
   bio: string[];
   stats: AboutStat[];
+  /** NOW block entries — falls back to built-in copy when absent. */
+  now?: NowItem[];
 }
 
 /** UI wiring choices made in the dashboard (e.g. which library element is live). */
@@ -148,6 +156,9 @@ export interface PortfolioData {
   contact?: ContactContent;
   footer?: FooterContent;
   experience: ExperienceItem[];
+  /** Standalone achievements shown in the commendation card — independent of
+   *  the per-experience achievement chips. */
+  achievements?: string[];
   projects: Project[];
   skills: Skill[];
 }

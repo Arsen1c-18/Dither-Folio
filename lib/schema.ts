@@ -45,7 +45,7 @@ const projectSchema = z.object({
   title: z.string(),
   description: z.string(),
   year: z.string(),
-  category: z.enum(["ai-ml", "web-apps", "tools"]),
+  category: z.string(),
   stack: z.array(z.string()),
   href: z.string().optional(),
   image: z.string().optional(),
@@ -107,6 +107,7 @@ export const portfolioSchema = z.object({
     .object({ credit: z.string().optional(), eof: z.string().optional() })
     .optional(),
   experience: z.array(experienceItemSchema),
+  achievements: z.array(z.string()).optional(),
   projects: z.array(projectSchema),
   skills: z.array(skillSchema),
 });

@@ -7,6 +7,8 @@
 import { data } from "@/lib/data";
 
 export const experience = data.experience;
+/** Standalone achievements for the commendation card. */
+export const achievements = data.achievements ?? [];
 export const projects = data.projects;
 export const skills = data.skills;
 export const about = data.about;
