@@ -30,6 +30,32 @@ const listItem: Variants = {
   },
 };
 
+/**
+ * Expanded menu labels follow the dial's visible (left) half.
+ * `radius` is expressed as a percentage of the dial, so the arc scales with
+ * both the live navigation and its responsive preview.
+ */
+const LABEL_ARC = {
+  radius: 33,
+  startAngle: 240,
+  endAngle: 120,
+} as const;
+
+function getArcPosition(index: number, total: number): CSSProperties {
+  const progress = total <= 1 ? 0.5 : index / (total - 1);
+  const angle =
+    LABEL_ARC.startAngle + (LABEL_ARC.endAngle - LABEL_ARC.startAngle) * progress;
+  const radians = (angle * Math.PI) / 180;
+
+  return {
+    left: `${50 + LABEL_ARC.radius * Math.cos(radians)}%`,
+    top: `${50 + LABEL_ARC.radius * Math.sin(radians)}%`,
+    // `translate` keeps the label centred on its polar-coordinate point while
+    // leaving Framer Motion's existing x-axis reveal animation untouched.
+    translate: "-50% -50%",
+  };
+}
+
 /** Minute-style graduation ring rendered as an SVG dash pattern. */
 function GraduationRing({ className, ticks, length, style }: {
   className?: string;
@@ -150,7 +176,7 @@ export function RadialNavClassic({ className, preview = false }: { className?: s
       />
 
       {/* inner solid ring + hub */}
-      <div className="absolute inset-[26%] rounded-full border border-[var(--color-muted)] opacity-70" />
+      <div className="absolute inset-[32%] rounded-full border border-[var(--color-muted)] opacity-70" />
 
       {/* cardinal tick marks over everything */}
       {[0, 90, 180, 270].map((a) => (
@@ -169,10 +195,10 @@ export function RadialNavClassic({ className, preview = false }: { className?: s
         {open && (
           <motion.div
             key="hub"
-              className={cn(
-                "pointer-events-auto absolute top-1/2 -translate-x-1/2 -translate-y-1/2",
-                preview ? "left-1/2" : "left-[45%]",
-              )}
+            className={cn(
+              "pointer-events-auto absolute top-1/2 -translate-x-1/2 -translate-y-1/2",
+              preview ? "left-1/2" : "left-[45%]",
+            )}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, transition: { duration: 0.15 } }}
@@ -185,7 +211,7 @@ export function RadialNavClassic({ className, preview = false }: { className?: s
       </AnimatePresence>
 
       {/* ── visible-half content: game menu ── */}
-      <div className="pointer-events-none absolute inset-y-0 left-[6%] flex w-[38%] flex-col justify-center gap-6">
+      <div className="pointer-events-none absolute inset-0">
         <AnimatePresence mode="wait">
           {open ? (
             <motion.div
@@ -193,16 +219,21 @@ export function RadialNavClassic({ className, preview = false }: { className?: s
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0, transition: { duration: 0.15 } }}
-              className="flex flex-col gap-6"
+              className="absolute inset-0"
             >
               <motion.ul
-                className="pointer-events-auto flex flex-col gap-2"
+                className="pointer-events-none absolute inset-0"
                 variants={list}
                 initial="hidden"
                 animate="show"
               >
                 {nav.map((item, i) => (
-                  <motion.li key={item.id} variants={listItem}>
+                  <motion.li
+                    key={item.id}
+                    variants={listItem}
+                    className="pointer-events-auto absolute whitespace-nowrap"
+                    style={getArcPosition(i, nav.length)}
+                  >
                     <a
                       href={`#${item.id}`}
                       className="group flex origin-left items-center gap-3 py-0.5 transition-transform duration-200 ease-out hover:scale-[1.18]"
@@ -214,13 +245,15 @@ export function RadialNavClassic({ className, preview = false }: { className?: s
                       >
                         ▸
                       </span>
-                      <span className="label-system text-[0.6rem] text-[var(--color-subtle)] transition-colors group-hover:text-[var(--color-accent)]">
+                      <span className="label-system text-xs font-bold text-[var(--color-foreground)] transition-colors group-hover:text-[var(--color-accent)]">
                         {String(i + 1).padStart(2, "0")}
                       </span>
-                      <span className={cn(
-                        "font-display font-medium tracking-tight text-[var(--color-muted)] transition-colors duration-200 group-hover:text-[var(--color-accent)]",
-                        preview ? "text-lg sm:text-xl" : "text-2xl sm:text-3xl",
-                      )}>
+                      <span
+                        className={cn(
+                          "font-display font-medium tracking-tight text-[var(--color-muted)] transition-colors duration-200 group-hover:text-[var(--color-accent)]",
+                          preview ? "text-lg sm:text-xl" : "text-2xl sm:text-3xl",
+                        )}
+                      >
                         {item.label}
                       </span>
                     </a>
@@ -231,7 +264,7 @@ export function RadialNavClassic({ className, preview = false }: { className?: s
           ) : (
             <motion.span
               key="hint"
-              className="label-system text-[var(--color-faint)]"
+              className="label-system absolute left-[6%] top-1/2 -translate-y-1/2 text-[var(--color-faint)]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1, transition: { delay: 0.2 } }}
               exit={{ opacity: 0, transition: { duration: 0.1 } }}
