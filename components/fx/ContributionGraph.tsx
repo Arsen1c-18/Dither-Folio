@@ -50,7 +50,7 @@ const GAP  = 2;
 const STEP = CELL + GAP;
 
 /* ─── Cell ──────────────────────────────────────────────────────────────── */
-function Cell({ count, weekIdx, dayIdx, flicker }: { count: number; weekIdx: number; dayIdx: number; flicker: boolean }) {
+function Cell({ count, weekIdx, dayIdx, flicker, size }: { count: number; weekIdx: number; dayIdx: number; flicker: boolean; size: number }) {
   const reduce = useReducedMotion();
   const level  = getLevel(count);
 
@@ -81,8 +81,8 @@ function Cell({ count, weekIdx, dayIdx, flicker }: { count: number; weekIdx: num
       title={count === 0 ? "No contributions" : `${count} contribution${count !== 1 ? "s" : ""}`}
       className="relative rounded-sm cursor-default select-none"
       style={{
-        width: CELL,
-        height: CELL,
+        width: size,
+        height: size,
         flexShrink: 0,
         background: level.bg,
         border: `1px solid ${level.border}`,
@@ -138,6 +138,7 @@ function monthLabels(weeks: number[][]): { label: string; col: number }[] {
 /* ─── Main ───────────────────────────────────────────────────────────────── */
 export function ContributionGraph() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const gridWrapRef = useRef<HTMLDivElement>(null);
   // ~50 concurrently animating glow layers is too much for phone GPUs —
   // cells keep the entry reveal there but skip the infinite flicker
   const isMobile = useIsMobile();
@@ -179,6 +180,26 @@ export function ContributionGraph() {
   const total  = live?.total ?? weeks.flat().reduce((s, v) => s + v, 0);
   const labels = useMemo(() => monthLabels(weeks), [weeks]);
 
+  /* Cells shrink to fit the available width on narrow viewports (so month
+     labels can't escape the card) but never grow past the design size, so
+     desktop renders exactly as before. */
+  const [cellSize, setCellSize] = useState(CELL);
+  useEffect(() => {
+    const el = gridWrapRef.current;
+    if (!el) return;
+    const fit = () => {
+      const avail = el.clientWidth - 28; /* day-label column + gap */
+      const fitted = Math.floor((avail - (weeks.length - 1) * GAP) / weeks.length);
+      setCellSize(Math.max(3, Math.min(CELL, fitted)));
+    };
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [weeks.length]);
+
+  const step = cellSize + GAP;
+
   const DAY_LABELS = ["Mon", "", "Wed", "", "Fri", "", "Sun"];
 
   return (
@@ -212,14 +233,14 @@ export function ContributionGraph() {
       </div>
 
       {/* Graph */}
-      <div className="relative">
+      <div ref={gridWrapRef} className="relative">
         {/* Month labels */}
         <div className="relative mb-1 h-4" style={{ marginLeft: 28 }}>
           {labels.map(({ label, col }) => (
             <span
               key={`${label}-${col}`}
               className="absolute font-mono text-[0.55rem] text-[var(--color-subtle)]"
-              style={{ left: col * STEP }}
+              style={{ left: col * step }}
             >
               {label}
             </span>
@@ -233,7 +254,7 @@ export function ContributionGraph() {
               <div
                 key={i}
                 className="flex items-center font-mono text-[0.55rem] leading-none text-[var(--color-subtle)]"
-                style={{ height: STEP }}
+                style={{ height: step }}
               >
                 {d}
               </div>
@@ -245,7 +266,7 @@ export function ContributionGraph() {
             {weeks.map((week, wi) => (
               <div key={wi} className="flex flex-col gap-0.5">
                 {week.map((count, di) => (
-                  <Cell key={di} count={count} weekIdx={wi} dayIdx={di} flicker={inView && !isMobile} />
+                  <Cell key={di} count={count} weekIdx={wi} dayIdx={di} flicker={inView && !isMobile} size={cellSize} />
                 ))}
               </div>
             ))}
