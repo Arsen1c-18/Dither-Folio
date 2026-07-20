@@ -69,7 +69,7 @@ export function Dashboard() {
           </div>
           <div className="flex items-center gap-2">
             <a href="/" target="_blank" className="rounded-lg border border-[var(--color-border-strong)] px-3 py-2 text-xs text-[var(--color-muted)] transition-colors hover:text-[var(--color-foreground)]">
-              View site ↗
+              View site ↗︎
             </a>
             <button onClick={logout} className="rounded-lg border border-[var(--color-border-strong)] px-3 py-2 text-xs text-[var(--color-muted)] transition-colors hover:text-[var(--color-foreground)]">
               Lock

@@ -33,11 +33,11 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: `${site.name} — ${site.role}`,
+  title: site.name,
   description: site.tagline,
   metadataBase: new URL(site.metadataBase),
   openGraph: {
-    title: `${site.name} — ${site.role}`,
+    title: site.name,
     description: site.tagline,
     type: "website",
   },

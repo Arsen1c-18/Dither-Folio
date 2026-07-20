@@ -57,9 +57,11 @@ export function LoadingScreen() {
           transition={{ duration: 0.8, ease: "easeInOut" }}
           className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#050505] text-[var(--color-foreground)]"
         >
-          {/* Circular Ring Mask over the standard Dither effect */}
-          <div 
-            className="absolute inset-0 opacity-40 pointer-events-none"
+          {/* Circular Ring Mask over the standard Dither effect. Desktop
+              only — on phones the shader is a static grain texture that
+              just looks noisy, so the loader stays clean black there. */}
+          <div
+            className="absolute inset-0 opacity-40 pointer-events-none max-md:hidden"
             style={{
               maskImage: 'radial-gradient(circle at center, transparent 25%, black 28%, black 45%, transparent 55%)',
               WebkitMaskImage: 'radial-gradient(circle at center, transparent 25%, black 28%, black 45%, transparent 55%)'

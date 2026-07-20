@@ -417,7 +417,7 @@ function TimelineRecord({
                           key={a}
                           className="flex items-baseline gap-2.5 font-mono text-[0.72rem] tracking-[0.04em] text-[var(--color-muted)]"
                         >
-                          <span className="text-[var(--color-accent)]">★</span>
+                          <span className="text-[var(--color-accent)]">✦</span>
                           {a}
                         </li>
                       ))}

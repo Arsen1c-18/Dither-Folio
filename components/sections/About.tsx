@@ -229,7 +229,9 @@ function SocialLinks() {
         href={site.resumeUrl}
         className="flex items-center gap-2 rounded-full bg-[var(--color-accent)] px-4 py-2 text-xs font-medium text-[#050505] transition-colors hover:bg-[var(--color-accent-bright)]"
       >
-        Resume ↗
+        {/* ︎ forces text presentation — U+2197 is emoji-capable and
+            Chrome otherwise renders it as the color emoji arrow */}
+        Resume {"↗︎"}
       </a>
     </div>
   );

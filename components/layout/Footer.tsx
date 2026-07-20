@@ -87,7 +87,7 @@ export function Footer() {
                   >
                     {s.label}
                     <span className="font-mono text-[0.6rem] text-[var(--color-subtle)] transition-colors duration-300 group-hover:text-[var(--color-accent)]">
-                      ↗
+                      {"↗︎"}
                     </span>
                   </a>
                 </li>

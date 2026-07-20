@@ -206,7 +206,7 @@ function StripCard({
           >
             View project
             <span className="text-[var(--color-subtle)] transition-all duration-300 group-hover/link:-translate-y-0.5 group-hover/link:translate-x-0.5 group-hover/link:text-[var(--color-accent)]">
-              ↗
+              ↗︎
             </span>
           </a>
         </div>
@@ -433,7 +433,7 @@ export function Projects() {
                   <span className="uppercase">{project.year}</span>
                 </span>
                 <span className="text-[var(--color-subtle)] transition-colors duration-300 group-hover:text-[var(--color-accent)]">
-                  ↗
+                  ↗︎
                 </span>
               </div>
 
