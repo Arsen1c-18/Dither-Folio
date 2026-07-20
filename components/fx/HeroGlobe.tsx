@@ -77,9 +77,10 @@ export function HeroGlobe({ className }: { className?: string }) {
 
     function resize() {
       if (!canvas || !ctx) return;
-      const rect = canvas.getBoundingClientRect();
-      W = rect.width;
-      H = rect.height;
+      // layout size, not getBoundingClientRect — ancestors may be
+      // CSS-scaled (scroll zoom) and that must not shrink the bitmap
+      W = canvas.clientWidth;
+      H = canvas.clientHeight;
       canvas.width = W * DPR;
       canvas.height = H * DPR;
       ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -165,8 +166,11 @@ export function HeroGlobe({ className }: { className?: string }) {
     function onMove(e: MouseEvent) {
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
-      mouseX = e.clientX - rect.left;
-      mouseY = e.clientY - rect.top;
+      if (rect.width === 0 || rect.height === 0) return;
+      // map through the rect so CSS transforms (scroll zoom on ancestors)
+      // don't skew screen coords vs canvas coords
+      mouseX = ((e.clientX - rect.left) / rect.width) * W;
+      mouseY = ((e.clientY - rect.top) / rect.height) * H;
     }
 
     function onLeaveWindow() {

@@ -159,6 +159,18 @@
   },
   "experience": [
     {
+      "id": "exp-03",
+      "role": "Design Co-Lead",
+      "org": "E-Cell RBU",
+      "period": "Sept '25 - Jan '26",
+      "summary": "Leading the visual identity of the entrepreneurship cell by designing event branding, promotional campaigns, social media creatives, and collaborative design systems for campus initiatives.",
+      "skills": [
+        "Design Leadership",
+        "Team Management",
+        "Visual Identity"
+      ]
+    },
+    {
       "id": "exp-01",
       "role": "Graphic Design Intern",
       "org": "Innoticx",
@@ -181,7 +193,7 @@
       "id": "exp-02",
       "role": "Member",
       "org": "GDG RBU",
-      "period": "TBD",
+      "period": "Oct '25 - Present",
       "current": true,
       "summary": "Designed user interfaces, event branding, landing pages, and frontend experiences for developer-focused events while collaborating with organizers to deliver engaging digital experiences.",
       "skills": [
@@ -194,18 +206,6 @@
         "Created Social Media Creatives",
         "Built Landing Pages",
         "Managed Frontend"
-      ]
-    },
-    {
-      "id": "exp-03",
-      "role": "Design Co-Lead",
-      "org": "E-Cell RBU",
-      "period": "TBD",
-      "summary": "Leading the visual identity of the entrepreneurship cell by designing event branding, promotional campaigns, social media creatives, and collaborative design systems for campus initiatives.",
-      "skills": [
-        "Design Leadership",
-        "Team Management",
-        "Visual Identity"
       ]
     },
     {
