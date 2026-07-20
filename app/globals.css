@@ -69,6 +69,13 @@
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
     scroll-behavior: auto; /* Lenis handles smoothing later */
+    /* clip (not hidden) so no scroll container is created — mobile browsers
+       size the layout viewport from html, and decorative bleed elements
+       (ghost section numerals, arcs) must never widen the page and cause
+       the "zoomed out" initial scale on phones. hidden first as a fallback
+       for browsers without clip support. */
+    overflow-x: hidden;
+    overflow-x: clip;
   }
 
   body {
@@ -79,7 +86,7 @@
     background-attachment: fixed;
     color: var(--color-foreground);
     font-family: var(--font-sans);
-    overflow-x: hidden;
+    overflow-x: clip;
     font-feature-settings: "ss01", "cv01";
   }
 

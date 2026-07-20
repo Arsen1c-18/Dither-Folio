@@ -323,8 +323,10 @@ export function Projects() {
       id="projects"
       // One viewport of scroll per transition between cards, plus the
       // sticky viewport itself — the section ends when the last card is
-      // focused, then the page scrolls on
-      className="relative z-20 h-auto scroll-mt-20 md:h-[var(--strip-h)]"
+      // focused, then the page scrolls on. overflow-x-clip (not hidden —
+      // hidden would break the sticky stage) stops the ghost numeral from
+      // widening the page on mobile, where the stage is overflow-visible.
+      className="relative z-20 h-auto scroll-mt-20 overflow-x-clip md:h-[var(--strip-h)]"
       style={{ "--strip-h": `${SLOTS * 100}vh` } as React.CSSProperties}
     >
       {/* Sticky full-screen stage (desktop) / normal flow (mobile) */}

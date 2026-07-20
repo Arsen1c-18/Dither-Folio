@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import type { CSSProperties } from "react";
 import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
 import { site, theme } from "@/constants/site";
@@ -23,6 +23,14 @@ const jetbrainsMono = JetBrains_Mono({
   variable: "--font-jetbrains-mono",
   display: "swap",
 });
+
+/* Pin the layout viewport to the device width — without this, phones fall
+   back to the 980px legacy viewport and render the whole page "zoomed out" */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#050505",
+};
 
 export const metadata: Metadata = {
   title: `${site.name} — ${site.role}`,

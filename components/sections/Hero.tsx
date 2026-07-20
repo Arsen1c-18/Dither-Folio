@@ -205,7 +205,18 @@ const RADIAL_NAV_CLASS = "pointer-events-auto absolute right-[max(-26vw,-30rem)]
 export function Hero() {
   const reduceMotion = useReducedMotion();
   const [ready, setReady] = useState(false);
+  // The radial dial is a desktop-only interaction (hover-driven, heavy
+  // canvas) — don't even mount it below md so phones skip its render loop
+  const [isDesktop, setIsDesktop] = useState(false);
   const radialNav = getLibraryEntry(getSlotSelection(data.ui, "radial-navbar"));
+
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const update = () => setIsDesktop(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   useEffect(() => {
     if ((window as unknown as { __portfolioLoaded?: boolean }).__portfolioLoaded) {
@@ -262,7 +273,7 @@ export function Hero() {
   return (
     <section
       id="hero"
-      className="relative min-h-screen overflow-hidden"
+      className="relative min-h-svh overflow-hidden"
       onMouseMove={handleMouseMove}
     >
       {/* Dither shader backdrop — drifts subtly against the pointer */}
@@ -283,7 +294,7 @@ export function Hero() {
       {/* Top Header / Branding */}
       <motion.div
         {...fadeIn(0.5)}
-        className="absolute top-6 left-10 right-10 z-50 flex items-start justify-between sm:top-10 sm:left-14 sm:right-14 lg:top-12 lg:left-16 lg:right-16"
+        className="absolute top-20 left-6 right-6 z-50 flex items-start justify-between sm:left-14 sm:right-14 md:top-10 lg:top-12 lg:left-16 lg:right-16"
       >
         <div className="flex items-center gap-3">
           <span className="grid size-8 place-items-center border border-[var(--color-border-strong)] font-mono text-[0.65rem] text-[var(--color-accent)]">
@@ -311,7 +322,7 @@ export function Hero() {
       </motion.div>
 
       {/* Main layout grid */}
-      <div className="pointer-events-none relative grid min-h-screen grid-cols-1 items-center px-6 sm:px-10 md:grid-cols-[1.1fr_1fr] lg:px-20">
+      <div className="pointer-events-none relative grid min-h-svh grid-cols-1 items-center px-6 sm:px-10 md:grid-cols-[1.1fr_1fr] lg:px-20">
 
         {/* ── LEFT: headline + CTAs ── */}
         <div className="pointer-events-auto relative z-10 flex max-w-2xl flex-col gap-0 pt-28 md:translate-x-8 md:pt-0 lg:translate-x-50">
@@ -366,6 +377,16 @@ export function Hero() {
             </BracketCta>
           </motion.div>
 
+          {/* Mobile-only advisory — the full interactive experience is
+              tuned for pointer + large viewport */}
+          <motion.p
+            {...reveal(0.52)}
+            className="mt-8 flex items-center gap-2.5 font-mono text-[0.6rem] uppercase tracking-[0.18em] text-[var(--color-subtle)] md:hidden"
+          >
+            <span className="text-[var(--color-accent)]">[ ! ]</span>
+            Best experienced on a desktop
+          </motion.p>
+
         </div>
 
         {/* ── RIGHT: radial nav dial — smaller, vertically contained ── */}
@@ -376,16 +397,17 @@ export function Hero() {
           animate={ready || reduceMotion ? { opacity: 1, x: 0 } : { opacity: 0, x: 60 }}
           transition={{ duration: 1.2, delay: 0.4, ease: EASE }}
         >
-          {radialNav?.slot === "radial-navbar"
-            ? radialNav.renderLive(RADIAL_NAV_CLASS)
-            : <RadialNav className={RADIAL_NAV_CLASS} />}
+          {isDesktop &&
+            (radialNav?.slot === "radial-navbar"
+              ? radialNav.renderLive(RADIAL_NAV_CLASS)
+              : <RadialNav className={RADIAL_NAV_CLASS} />)}
         </motion.div>
       </div>
 
       {/* Scroll hint & System Status Bottom Bar */}
       <motion.div
         {...fadeIn(0.5)}
-        className="absolute bottom-6 left-10 right-10 z-50 flex items-end justify-between sm:bottom-10 sm:left-14 sm:right-14 lg:bottom-12 lg:left-16 lg:right-16"
+        className="absolute bottom-6 left-6 right-6 z-50 flex items-end justify-between sm:bottom-10 sm:left-14 sm:right-14 lg:bottom-12 lg:left-16 lg:right-16"
       >
         <div className="flex flex-col gap-1.5">
           <span className="label-system text-[var(--color-subtle)]">SYS.STATUS</span>

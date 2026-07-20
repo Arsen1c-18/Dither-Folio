@@ -52,8 +52,10 @@ export function Contact() {
       ref={sectionRef}
       id="contact"
       // Negative bottom margin hangs the globe's lower arc over the footer;
-      // z-index floats it above the footer surface
-      className="section-flow relative z-10 -mb-40 scroll-mt-20 sm:-mb-48"
+      // z-index floats it above the footer surface. overflow-x-clip contains
+      // the ghost numeral's bleed without clipping the vertical overhang
+      // (plain overflow-hidden would cut the globe off at the footer seam).
+      className="section-flow relative z-10 -mb-40 scroll-mt-20 overflow-x-clip sm:-mb-48"
     >
       {/* Ghost section index */}
       <span
@@ -150,19 +152,20 @@ export function Contact() {
           <div className="relative">
             <HeroGlobe className="size-[min(84vw,38rem)]" />
 
-            {/* Orbit ring — a faint dashed circle the links ride on */}
+            {/* Orbit ring — a faint dashed circle the links ride on
+                (desktop only; on mobile the chips would clip off-screen) */}
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 rounded-full border border-dashed border-[var(--color-border)] opacity-40"
+              className="pointer-events-none absolute inset-0 hidden rounded-full border border-dashed border-[var(--color-border)] opacity-40 md:block"
               style={{ transform: `scale(${ORBIT})` }}
             />
 
             {/* The satellites: each link parked at its angle on the orbit.
                 The whole ring rotates with scroll; each chip counter-rotates
-                to stay upright. */}
+                to stay upright. Desktop only — mobile gets a stacked list. */}
             <motion.div
               style={reduceMotion ? undefined : { rotate: orbitTurn }}
-              className="absolute inset-0"
+              className="absolute inset-0 hidden md:block"
             >
               {socials.map((s, i) => {
                 // Distribute evenly, starting from the top
@@ -201,6 +204,31 @@ export function Contact() {
                 );
               })}
             </motion.div>
+          </div>
+
+          {/* Mobile: channels as a simple grid under the globe — the
+              orbiting satellites above are desktop-only */}
+          <div className="mt-10 grid w-full max-w-sm grid-cols-2 gap-3 px-2 md:hidden">
+            {socials.map((s, i) => (
+              <motion.a
+                key={s.label}
+                href={s.href}
+                target={s.href.startsWith("mailto:") ? undefined : "_blank"}
+                rel="noreferrer"
+                initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, amount: 0.4 }}
+                transition={{ duration: 0.5, ease: EASE, delay: i * 0.06 }}
+                className="group flex flex-col gap-0.5 border border-[var(--color-border)] bg-[var(--color-bg)]/80 px-4 py-3"
+              >
+                <span className="font-mono text-[0.6rem] uppercase tracking-[0.22em] text-[var(--color-subtle)] transition-colors duration-300 group-hover:text-[var(--color-accent)]">
+                  {s.label}
+                </span>
+                <span className="truncate text-xs text-[var(--color-muted)]">
+                  {s.handle}
+                </span>
+              </motion.a>
+            ))}
           </div>
 
           {/* Quote beneath the globe */}
