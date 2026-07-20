@@ -151,7 +151,7 @@ function StripCard({
       {/* ── Front face ── */}
       <motion.div
         style={{ visibility: frontVisibility }}
-        className="group relative flex h-full w-full overflow-hidden border border-[var(--color-border-strong)] bg-[var(--color-surface)]/95 backdrop-blur-xl transition-colors duration-300 hover:border-[var(--color-accent)]/40"
+        className="group relative flex h-full w-full overflow-hidden border border-[var(--color-border-strong)] bg-[var(--color-surface)] transition-colors duration-300 hover:border-[var(--color-accent)]/40"
       >
         {/* Ghost year, bottom-left of the text side */}
         <span

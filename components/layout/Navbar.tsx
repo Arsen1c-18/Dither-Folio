@@ -58,7 +58,7 @@ export function Navbar() {
       )}
       aria-hidden={!visible}
     >
-      <nav className="pointer-events-auto flex h-10 min-w-0 max-w-full items-center gap-2 rounded-full border border-[var(--color-border-strong)] bg-[var(--color-bg)]/80 py-1 pl-3 pr-1.5 shadow-[0_12px_36px_-20px_rgba(0,0,0,0.8)] backdrop-blur-md sm:h-12 sm:gap-5 sm:py-1.5 sm:pl-5 sm:pr-3">
+      <nav className="pointer-events-auto flex h-10 min-w-0 max-w-full items-center gap-2 rounded-full border border-[var(--color-border-strong)] bg-[var(--color-bg)]/95 py-1 pl-3 pr-1.5 shadow-[0_12px_36px_-20px_rgba(0,0,0,0.8)] sm:h-12 sm:gap-5 sm:py-1.5 sm:pl-5 sm:pr-3 md:bg-[var(--color-bg)]/80 md:backdrop-blur-md">
         <a
           href="#hero"
           className="shrink-0 font-display text-xs font-medium tracking-tight text-[var(--color-foreground)] sm:text-base"

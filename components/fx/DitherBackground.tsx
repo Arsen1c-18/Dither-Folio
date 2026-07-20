@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import { cn } from "@/lib/utils";
 import { data } from "@/lib/data";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 /**
  * Client-only wrapper around the interactive React Bits-inspired dither shader.
@@ -49,6 +50,28 @@ interface DitherBackgroundProps extends DitherProps {
   overlay?: number;
 }
 
+/* Frozen-frame stand-in for phones: same grain-over-dark mood as the
+   shader (SVG turbulence ≈ the dither texture, tinted with the preset's
+   wave colour) at zero per-frame cost, plus the footer's warm accent
+   glow rising from the bottom so the surface doesn't read as flat.
+   Mobile GPUs + full-screen fragment shaders are the single biggest
+   stutter source on phones. */
+const NOISE_URI =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
+
+function StaticDitherFallback({ waveColor = [0.5, 0.5, 0.5] }: DitherProps) {
+  const [r, g, b] = waveColor.map((c) => Math.round(c * 255));
+  return (
+    <div
+      className="absolute inset-0"
+      style={{
+        backgroundColor: "#050505",
+        backgroundImage: `radial-gradient(120% 90% at 50% 20%, rgba(${r},${g},${b},0.16), transparent 70%), ${NOISE_URI}`,
+      }}
+    />
+  );
+}
+
 /**
  * Positioned, overlaid dither surface. Drop it into any `relative` container:
  *
@@ -63,6 +86,7 @@ export function DitherBackground({
   overlay = 0.4,
   ...overrides
 }: DitherBackgroundProps) {
+  const isMobile = useIsMobile();
   const props = { ...ditherPresets[preset], ...overrides };
 
   return (
@@ -71,7 +95,7 @@ export function DitherBackground({
       className={cn("absolute inset-0 overflow-hidden", className)}
     >
       <div className="absolute inset-0">
-        <Dither {...props} />
+        {isMobile ? <StaticDitherFallback {...props} /> : <Dither {...props} />}
       </div>
 
       {/* Legibility scrim */}

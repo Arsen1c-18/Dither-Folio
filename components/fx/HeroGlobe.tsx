@@ -18,18 +18,25 @@ export function HeroGlobe({ className }: { className?: string }) {
     if (!ctx) return;
 
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    // Phones get a lighter globe: fewer stars, no per-star shadow glow
+    const mobile = window.matchMedia(
+      "(max-width: 767px), ((hover: none) and (pointer: coarse))",
+    ).matches;
     const DPR = Math.min(window.devicePixelRatio || 1, 2);
     const styles = getComputedStyle(document.documentElement);
     const INK = styles.getPropertyValue("--color-foreground").trim() || "#e8e6e1";
     const ACCENT = styles.getPropertyValue("--color-accent").trim() || "#ff3b3b";
 
     const TILT = -0.4;
-    const COUNT = 700;
+    const COUNT = mobile ? 220 : 700;
     let W = 0, H = 0, R = 0;
     let rotation = 0;
     const speed = 0.0016;
     let raf = 0;
     let time = 0;
+    // pause the loop while the canvas is scrolled out of view
+    let inView = true;
+    let running = false;
 
     // cursor in canvas coords; far away by default so nothing repels
     let mouseX = -1e5, mouseY = -1e5;
@@ -146,8 +153,11 @@ export function HeroGlobe({ className }: { className?: string }) {
           const size = p.size * (0.9 + depth) * 1.9 * tw;
           ctx.fillStyle = ACCENT;
           ctx.globalAlpha = (0.5 + depth * 0.5) * tw;
-          ctx.shadowColor = ACCENT;
-          ctx.shadowBlur = 10 * depth;
+          if (!mobile) {
+            // canvas shadowBlur is a big per-draw cost — desktop only
+            ctx.shadowColor = ACCENT;
+            ctx.shadowBlur = 10 * depth;
+          }
           star(sx, sy, size);
           ctx.shadowBlur = 0;
         } else {
@@ -160,6 +170,11 @@ export function HeroGlobe({ className }: { className?: string }) {
         ctx.globalAlpha = 1;
       }
 
+      if (!inView) {
+        // parked: skip scheduling until the observer wakes us up again
+        running = false;
+        return;
+      }
       raf = requestAnimationFrame(frame);
     }
 
@@ -181,16 +196,32 @@ export function HeroGlobe({ className }: { className?: string }) {
     resize();
     window.addEventListener("resize", resize);
 
+    // Pause the RAF loop entirely while off-screen; resume when scrolled back
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        inView = entry.isIntersecting;
+        if (reduce) return;
+        if (inView && !running) {
+          running = true;
+          raf = requestAnimationFrame(frame);
+        }
+      },
+      { rootMargin: "100px" },
+    );
+    observer.observe(canvas);
+
     if (reduce) {
       frame();
       cancelAnimationFrame(raf);
     } else {
       window.addEventListener("mousemove", onMove);
       window.addEventListener("mouseout", onLeaveWindow);
+      running = true;
       raf = requestAnimationFrame(frame);
     }
 
     return () => {
+      observer.disconnect();
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
       window.removeEventListener("mousemove", onMove);

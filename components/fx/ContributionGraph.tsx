@@ -2,6 +2,7 @@
 
 import { useRef, useMemo, useState, useEffect } from "react";
 import { motion, useInView, useReducedMotion } from "framer-motion";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 /* ─── Seeded PRNG ────────────────────────────────────────────────────────── */
 function mulberry32(seed: number) {
@@ -49,7 +50,7 @@ const GAP  = 2;
 const STEP = CELL + GAP;
 
 /* ─── Cell ──────────────────────────────────────────────────────────────── */
-function Cell({ count, weekIdx, dayIdx }: { count: number; weekIdx: number; dayIdx: number }) {
+function Cell({ count, weekIdx, dayIdx, flicker }: { count: number; weekIdx: number; dayIdx: number; flicker: boolean }) {
   const reduce = useReducedMotion();
   const level  = getLevel(count);
 
@@ -73,13 +74,12 @@ function Cell({ count, weekIdx, dayIdx }: { count: number; weekIdx: number; dayI
     ? 1.1 + ((weekIdx * 7 + dayIdx * 3) % 19) * 0.1
     : 0;
 
-  const glowDim    = `0 0 ${2 + level.glow * 4}px rgba(255,55,55,${level.glow * 0.28})`;
   const glowBright = `0 0 ${6 + level.glow * 14}px rgba(255,60,60,${level.glow * 0.88})`;
 
   return (
     <motion.div
       title={count === 0 ? "No contributions" : `${count} contribution${count !== 1 ? "s" : ""}`}
-      className="rounded-sm cursor-default select-none"
+      className="relative rounded-sm cursor-default select-none"
       style={{
         width: CELL,
         height: CELL,
@@ -89,29 +89,34 @@ function Cell({ count, weekIdx, dayIdx }: { count: number; weekIdx: number; dayI
       }}
       /* Start very small + blurred so the zoom-in is obvious */
       initial={{ opacity: 0, scale: 0.15, y: 8, filter: "blur(3px)" }}
-      animate={{
-        opacity: 1,
-        scale: 1,
-        y: 0,
-        filter: "blur(0px)",
-        ...(hasGlow && { boxShadow: [glowDim, glowBright, glowDim] }),
-      }}
+      animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
       transition={{
         opacity: { duration: 0.7,  delay, ease: springEase },
         scale:   { duration: 0.7,  delay, ease: springEase },
         y:       { duration: 0.65, delay, ease: springEase },
         filter:  { duration: 0.6,  delay, ease: "easeOut"  },
-        ...(hasGlow && {
-          boxShadow: {
-            delay:      delay + 0.75,
-            duration:   flickerDuration,
-            repeat:     Infinity,
-            repeatType: "mirror",
-            ease:       "easeInOut",
-          },
-        }),
       }}
-    />
+    >
+      {/* Glow flicker — the shadow itself is painted once (static) and only
+          its OPACITY animates, which composites on the GPU instead of
+          repainting the shadow every frame. Unmounted entirely while the
+          graph is off-screen so nothing keeps ticking. */}
+      {hasGlow && flicker && !reduce && (
+        <motion.span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 rounded-sm"
+          style={{ boxShadow: glowBright }}
+          initial={{ opacity: 0.25 }}
+          animate={{ opacity: [0.25, 1, 0.25] }}
+          transition={{
+            delay:    delay + 0.75,
+            duration: flickerDuration * 2,
+            repeat:   Infinity,
+            ease:     "easeInOut",
+          }}
+        />
+      )}
+    </motion.div>
   );
 }
 
@@ -133,6 +138,9 @@ function monthLabels(weeks: number[][]): { label: string; col: number }[] {
 /* ─── Main ───────────────────────────────────────────────────────────────── */
 export function ContributionGraph() {
   const containerRef = useRef<HTMLDivElement>(null);
+  // ~50 concurrently animating glow layers is too much for phone GPUs —
+  // cells keep the entry reveal there but skip the infinite flicker
+  const isMobile = useIsMobile();
 
   /* useInView on the outer container; fires once when visible */
   const inView = useInView(containerRef, { once: false, amount: 0.15 });
@@ -237,7 +245,7 @@ export function ContributionGraph() {
             {weeks.map((week, wi) => (
               <div key={wi} className="flex flex-col gap-0.5">
                 {week.map((count, di) => (
-                  <Cell key={di} count={count} weekIdx={wi} dayIdx={di} />
+                  <Cell key={di} count={count} weekIdx={wi} dayIdx={di} flicker={inView && !isMobile} />
                 ))}
               </div>
             ))}

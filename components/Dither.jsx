@@ -5,6 +5,8 @@ import { useRef, useEffect } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
+import { useInViewport } from '@/lib/useInViewport';
+
 import './Dither.css';
 
 /* ─── Shaders ─────────────────────────────────────────────────────────────── */
@@ -266,26 +268,33 @@ export default function Dither({
   mouseRadius            = 1,
   anchorTop              = false,
 }) {
+  /* Pause the render loop entirely while the canvas is scrolled off-screen —
+     the shader output can't be seen, so there's no reason to keep paying for
+     full-screen fragment work every frame. */
+  const { ref, inView } = useInViewport();
+
   return (
-    <Canvas
-      className="dither-container"
-      camera={{ position: [0, 0, 6] }}
-      frameloop="always"
-      dpr={[1, 2]}
-      gl={{ antialias: false, alpha: false }}
-    >
-      <DitheredWaves
-        waveSpeed={waveSpeed}
-        waveFrequency={waveFrequency}
-        waveAmplitude={waveAmplitude}
-        waveColor={waveColor}
-        colorNum={colorNum}
-        pixelSize={pixelSize}
-        disableAnimation={disableAnimation}
-        enableMouseInteraction={enableMouseInteraction}
-        mouseRadius={mouseRadius}
-        anchorTop={anchorTop}
-      />
-    </Canvas>
+    <div ref={ref} className="dither-container">
+      <Canvas
+        className="dither-container"
+        camera={{ position: [0, 0, 6] }}
+        frameloop={inView ? 'always' : 'never'}
+        dpr={1}
+        gl={{ antialias: false, alpha: false }}
+      >
+        <DitheredWaves
+          waveSpeed={waveSpeed}
+          waveFrequency={waveFrequency}
+          waveAmplitude={waveAmplitude}
+          waveColor={waveColor}
+          colorNum={colorNum}
+          pixelSize={pixelSize}
+          disableAnimation={disableAnimation}
+          enableMouseInteraction={enableMouseInteraction}
+          mouseRadius={mouseRadius}
+          anchorTop={anchorTop}
+        />
+      </Canvas>
+    </div>
   );
 }

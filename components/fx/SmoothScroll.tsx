@@ -7,7 +7,10 @@ import Lenis from "lenis";
 export function SmoothScroll() {
   useEffect(() => {
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (reducedMotion.matches) return;
+    // Touch devices already have native momentum scrolling — Lenis there
+    // just adds a permanent RAF loop and fights the platform's feel.
+    const coarseTouch = window.matchMedia("(hover: none) and (pointer: coarse)");
+    if (reducedMotion.matches || coarseTouch.matches) return;
 
     const lenis = new Lenis({
       duration: 1.2,

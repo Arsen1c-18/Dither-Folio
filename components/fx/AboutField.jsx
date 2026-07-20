@@ -5,6 +5,8 @@ import { useRef } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
+import { useInViewport } from '@/lib/useInViewport';
+
 import '../Dither.css';
 
 /*
@@ -153,16 +155,21 @@ export default function AboutField({
   accentColor = [1.0, 0.23, 0.23],
   gridColor   = [0.38, 0.38, 0.38],
 }) {
+  /* Pause rendering while the About panel is off-screen */
+  const { ref, inView } = useInViewport();
+
   return (
-    <Canvas
-      className="dither-container"
-      camera={{ position: [0, 0, 1] }}
-      frameloop="always"
-      dpr={[1, 2]}
-      gl={{ antialias: true, alpha: false }}
-      orthographic
-    >
-      <TopologyField accentColor={accentColor} gridColor={gridColor} />
-    </Canvas>
+    <div ref={ref} className="dither-container">
+      <Canvas
+        className="dither-container"
+        camera={{ position: [0, 0, 1] }}
+        frameloop={inView ? 'always' : 'never'}
+        dpr={[1, 1.5]}
+        gl={{ antialias: false, alpha: false }}
+        orthographic
+      >
+        <TopologyField accentColor={accentColor} gridColor={gridColor} />
+      </Canvas>
+    </div>
   );
 }

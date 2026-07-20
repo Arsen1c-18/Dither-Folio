@@ -90,8 +90,10 @@ export function RadarScope({
       {/* contacts — each blips as the beam passes its bearing */}
       {contacts.map((c) => {
         const rad = ((c.angle - 90) * Math.PI) / 180;
-        const x = 50 + Math.cos(rad) * c.dist * 46;
-        const y = 50 + Math.sin(rad) * c.dist * 46;
+        // Fixed precision so the server- and client-rendered style strings
+        // are byte-identical (raw trig floats can differ and break hydration)
+        const x = (50 + Math.cos(rad) * c.dist * 46).toFixed(2);
+        const y = (50 + Math.sin(rad) * c.dist * 46).toFixed(2);
         return (
           <div
             key={c.label}

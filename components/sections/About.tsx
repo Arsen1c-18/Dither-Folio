@@ -15,6 +15,7 @@ import {
 import { site, socials } from "@/constants/site";
 import { about } from "@/constants/content";
 import { Section } from "@/components/layout/Section";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 /**
  * About — a full-screen "personnel dossier": blueprint grid backdrop,
@@ -102,11 +103,14 @@ function ArcBackdrop() {
           d="M 400 4 A 396 396 0 0 1 740 200"
           stroke="var(--color-accent)" strokeWidth="1" opacity="0.25"
         />
-        {/* Tick marks on the outer ring */}
+        {/* Tick marks on the outer ring. Coordinates are rounded to fixed
+            precision: raw Math.cos/sin output differs in the last float
+            digits between the server and some browsers, which trips React
+            hydration on the rendered attribute strings. */}
         {Array.from({ length: 24 }).map((_, i) => {
           const a = (i / 24) * Math.PI * 2;
-          const x1 = 400 + Math.cos(a) * 388, y1 = 400 + Math.sin(a) * 388;
-          const x2 = 400 + Math.cos(a) * 396, y2 = 400 + Math.sin(a) * 396;
+          const x1 = (400 + Math.cos(a) * 388).toFixed(2), y1 = (400 + Math.sin(a) * 388).toFixed(2);
+          const x2 = (400 + Math.cos(a) * 396).toFixed(2), y2 = (400 + Math.sin(a) * 396).toFixed(2);
           return (
             <line
               key={i} x1={x1} y1={y1} x2={x2} y2={y2}
@@ -235,6 +239,7 @@ function SocialLinks() {
 
 function TiltPanel() {
   const reduce = useReducedMotion();
+  const isMobile = useIsMobile();
   const ref = useRef<HTMLDivElement>(null);
 
   // Pointer position, normalised to [-0.5, 0.5] over the card.
@@ -252,14 +257,26 @@ function TiltPanel() {
   const contentX = useSpring(useTransform(px, [-0.5, 0.5], [10, -10]), spring);
   const contentY = useSpring(useTransform(py, [-0.5, 0.5], [10, -10]), spring);
 
+  // rAF-gated: one rect read + MotionValue update per frame, no matter how
+  // fast the pointer events arrive. Skipped on touch — pointermove there
+  // fires during scroll drags and tilts the card mid-scroll.
+  const moveFrame = useRef(0);
   function handleMove(e: React.PointerEvent<HTMLDivElement>) {
-    if (reduce || !ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    px.set((e.clientX - rect.left) / rect.width - 0.5);
-    py.set((e.clientY - rect.top) / rect.height - 0.5);
+    if (reduce || isMobile || !ref.current || moveFrame.current) return;
+    const { clientX, clientY } = e;
+    moveFrame.current = requestAnimationFrame(() => {
+      moveFrame.current = 0;
+      if (!ref.current) return;
+      const rect = ref.current.getBoundingClientRect();
+      px.set((clientX - rect.left) / rect.width - 0.5);
+      py.set((clientY - rect.top) / rect.height - 0.5);
+    });
   }
+  useEffect(() => () => cancelAnimationFrame(moveFrame.current), []);
 
   function handleLeave() {
+    cancelAnimationFrame(moveFrame.current);
+    moveFrame.current = 0;
     animate(px, 0, { duration: 0.6, ease: EASE });
     animate(py, 0, { duration: 0.6, ease: EASE });
   }
@@ -284,7 +301,9 @@ function TiltPanel() {
           transformStyle: "preserve-3d",
         }}
       >
-        {/* Depth layer 1 — dithered particle field (recedes) */}
+        {/* Depth layer 1 — dithered particle field (recedes).
+            On phones the WebGL field is skipped for a static gradient wash:
+            the tilt interaction it parallaxes against doesn't exist there. */}
         <motion.div
           aria-hidden
           className="absolute -inset-6"
@@ -294,7 +313,11 @@ function TiltPanel() {
             translateZ: -40,
           }}
         >
-          <AboutField />
+          {isMobile ? (
+            <div className="absolute inset-0 bg-[radial-gradient(90%_70%_at_50%_45%,rgba(255,59,59,0.14),transparent_75%)] bg-[var(--color-surface)]" />
+          ) : (
+            <AboutField />
+          )}
         </motion.div>
 
         {/* Legibility scrim */}

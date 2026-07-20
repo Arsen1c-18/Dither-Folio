@@ -24,7 +24,7 @@ export function Footer() {
           The scrim plus low opacity keeps the console text readable. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-35"
+        className="pointer-events-none absolute inset-0 opacity-[0.55]"
         style={{
           maskImage:
             "linear-gradient(to top, black 0%, rgba(0,0,0,0.6) 35%, rgba(0,0,0,0.25) 65%, transparent 100%)",

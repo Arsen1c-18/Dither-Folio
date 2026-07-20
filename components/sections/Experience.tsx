@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { motion, useReducedMotion, useScroll, useSpring, AnimatePresence } from "framer-motion";
 import { experience, achievements as standaloneAchievements } from "@/constants/content";
 import { DitherBackground } from "@/components/fx/DitherBackground";
+import { useIsMobile } from "@/lib/useIsMobile";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -22,6 +23,7 @@ const records = [...experience].reverse();
 
 export function Experience() {
   const reduceMotion = useReducedMotion();
+  const isMobile = useIsMobile();
   const listRef = useRef<HTMLOListElement>(null);
 
   // Timeline progress line follows scroll through the list
@@ -39,10 +41,12 @@ export function Experience() {
       {/* Faint dither effect across entire section background - blended.
           anchorTop keeps the wave field fixed to the top of the section so
           expanding/collapsing a record (which changes section height) doesn't
-          recentre and visibly jump the whole pattern. */}
+          recentre and visibly jump the whole pattern. Desktop-only: on
+          phones the static fallback texture reads flat and dead, so the
+          section sits directly on the page background instead. */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 opacity-40"
+        className="pointer-events-none absolute inset-0 opacity-40 max-md:hidden"
         style={{
           maskImage: "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",
           WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, black 10%, black 90%, transparent 100%)",
@@ -70,7 +74,7 @@ export function Experience() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.08 }}
           transition={{ duration: 0.9, ease: EASE }}
-          className="relative border border-[var(--color-border)]/50 bg-[var(--color-bg)]/60 p-6 backdrop-blur-md sm:p-10 lg:p-14"
+          className="relative border border-[var(--color-border)]/50 bg-[var(--color-bg)]/85 p-6 sm:p-10 lg:p-14 md:bg-[var(--color-bg)]/60 md:backdrop-blur-md"
         >
 
         {/* Dossier file header — same strip as About */}
@@ -86,7 +90,14 @@ export function Experience() {
           {/* ── Left: sticky intro ─────────────────────────────── */}
           <div className="relative lg:sticky lg:top-24 lg:h-fit lg:self-start">
             <motion.div
-              initial={reduceMotion ? false : { opacity: 0, y: 24, filter: "blur(8px)" }}
+              initial={
+                reduceMotion
+                  ? false
+                  : { opacity: 0, y: 24, ...(isMobile ? {} : { filter: "blur(8px)" }) }
+              }
+              // blur(0px) unconditional: useIsMobile is false on the first
+              // render (SSR default), so the blurred initial state can land
+              // on phones — the in-view target must always clear it
               whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
               viewport={{ once: true, amount: 0.3 }}
               transition={{ duration: 0.7, ease: EASE }}
@@ -133,14 +144,17 @@ export function Experience() {
             ))}
           </ol>
 
-          {/* Dithered wave sliver with gradient shadow - positioned above tagline */}
+          {/* Dithered wave sliver with gradient shadow - positioned above
+              tagline. Tablet-band only: hidden on phones along with the
+              rest of the section's dither, hidden at lg+ where the
+              full-section backdrop takes over. */}
           <motion.div
             aria-hidden
             initial={reduceMotion ? false : { opacity: 0 }}
             whileInView={{ opacity: 1 }}
             viewport={{ once: true, amount: 0.2 }}
             transition={{ duration: 1, ease: EASE, delay: 0.2 }}
-            className="relative mt-16 h-56 w-full overflow-hidden lg:hidden"
+            className="relative mt-16 h-56 w-full overflow-hidden max-md:hidden lg:hidden"
             style={{
               maskImage:
                 "radial-gradient(120% 100% at 0% 100%, black 40%, transparent 78%)",
@@ -268,6 +282,7 @@ function TimelineRecord({
   total: number;
 }) {
   const reduceMotion = useReducedMotion();
+  const isMobile = useIsMobile();
   const [isExpanded, setIsExpanded] = useState(false);
 
   // Log entries count down: newest record carries the highest index
@@ -275,7 +290,12 @@ function TimelineRecord({
 
   return (
     <motion.li
-      initial={reduceMotion ? false : { opacity: 0, y: 32, filter: "blur(6px)" }}
+      initial={
+        reduceMotion
+          ? false
+          : { opacity: 0, y: 32, ...(isMobile ? {} : { filter: "blur(6px)" }) }
+      }
+      // Unconditional blur(0px) — see the header motion.div above
       whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       viewport={{ once: true, amount: 0.25 }}
       transition={{ duration: 0.65, ease: EASE, delay: 0.05 * index }}
@@ -294,7 +314,7 @@ function TimelineRecord({
       </span>
 
       <div
-        className={`relative z-10 flex-1 border bg-[var(--color-surface)]/80 backdrop-blur-sm transition-colors duration-300 ${
+        className={`relative z-10 flex-1 border bg-[var(--color-surface)]/95 transition-colors duration-300 md:bg-[var(--color-surface)]/80 md:backdrop-blur-sm ${
           item.current
             ? "border-[var(--color-accent)]/40"
             : "border-[var(--color-border)] hover:border-[var(--color-border-strong)]"

@@ -181,7 +181,7 @@ export function Skills() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.08 }}
           transition={{ duration: 0.9, ease: EASE }}
-          className="relative border border-[var(--color-border)]/50 bg-[var(--color-bg)]/60 p-6 backdrop-blur-md sm:p-10 lg:p-14"
+          className="relative border border-[var(--color-border)]/50 bg-[var(--color-bg)]/85 p-6 sm:p-10 lg:p-14 md:bg-[var(--color-bg)]/60 md:backdrop-blur-md"
         >
           {/* Dossier file header strip */}
           <div className="mb-10 flex flex-wrap items-center justify-between gap-x-6 gap-y-2 border-y border-[var(--color-border-strong)] py-2.5 font-mono text-[0.65rem] tracking-[0.15em] text-[var(--color-subtle)] md:mb-14">
@@ -231,7 +231,7 @@ export function Skills() {
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true, amount: 0.3 }}
                   transition={{ duration: 0.6, ease: EASE, delay: ci * 0.08 }}
-                  className="flex flex-col border border-[var(--color-border-strong)] bg-[var(--color-surface)]/95 backdrop-blur-xl transition-colors duration-300 hover:border-[var(--color-accent)]/40"
+                  className="flex flex-col border border-[var(--color-border-strong)] bg-[var(--color-surface)] transition-colors duration-300 hover:border-[var(--color-accent)]/40"
                 >
                   {/* Record strip */}
                   <div className="flex items-center justify-between border-b border-[var(--color-border)] px-5 py-2.5 font-mono text-[0.62rem] tracking-[0.16em] text-[var(--color-subtle)]">

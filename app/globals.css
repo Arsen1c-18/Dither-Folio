@@ -80,14 +80,25 @@
 
   body {
     background-color: var(--color-bg);
-    background-image:
-      radial-gradient(circle at 50% 12%, rgba(255, 59, 59, 0.055), transparent 28rem),
-      linear-gradient(90deg, transparent calc(50% - 1px), rgba(255,255,255,0.025) 50%, transparent calc(50% + 1px));
-    background-attachment: fixed;
     color: var(--color-foreground);
     font-family: var(--font-sans);
     overflow-x: clip;
     font-feature-settings: "ss01", "cv01";
+  }
+
+  /* Page-wide gradient wash. Lives on a fixed pseudo-element instead of
+     body { background-attachment: fixed } — fixed attachment forces the
+     browser to repaint the gradient on every scroll; a fixed element just
+     composites. Identical look, scrolls free. */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background-image:
+      radial-gradient(circle at 50% 12%, rgba(255, 59, 59, 0.055), transparent 28rem),
+      linear-gradient(90deg, transparent calc(50% - 1px), rgba(255,255,255,0.025) 50%, transparent calc(50% + 1px));
   }
 
   /* Headings default to the display face */
@@ -164,15 +175,19 @@
     border: 1px solid var(--color-border);
   }
 
-  /* Very subtle film-grain overlay (attach to a fixed layer) */
-  .film-grain::before {
-    content: "";
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    pointer-events: none;
-    opacity: 0.035;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* Very subtle film-grain overlay (attach to a fixed layer).
+     Desktop-only: a full-screen fixed compositing layer is real cost on
+     phone GPUs and the grain is invisible at phone sizes anyway. */
+  @media (min-width: 768px) {
+    .film-grain::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      pointer-events: none;
+      opacity: 0.035;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
   }
 
   /* Continuous rotation for the radial nav (pause via .animation-paused) */

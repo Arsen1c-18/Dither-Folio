@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   motion,
   useReducedMotion,
@@ -191,7 +191,14 @@ function BracketCta({
   );
 }
 
-const RADIAL_NAV_CLASS = "pointer-events-auto absolute right-[max(-26vw,-30rem)] top-1/2 size-[min(52vw,58rem)] -translate-y-1/2";
+// Dial diameter is capped by viewport height as well as width: the hero's
+// top HUD and bottom status bar each occupy ~7rem of the svh, so the circle
+// must never exceed 100svh minus that band or it overlaps them (visible in
+// wide-but-short viewports, e.g. Chrome at 100% on 1080p). The right offset
+// derives from the same variable so exactly half the dial stays off-screen
+// at every resulting size.
+const RADIAL_NAV_CLASS =
+  "pointer-events-auto absolute [--dial:min(52vw,calc(100svh_-_14rem),58rem)] right-[calc(var(--dial)/-2)] top-1/2 size-[var(--dial)] -translate-y-1/2";
 
 /**
  * Full-viewport hero — text left over the dither shader backdrop,
@@ -236,11 +243,20 @@ export function Hero() {
   const bgX = useTransform(sx, (v) => v * -10);
   const bgY = useTransform(sy, (v) => v * -8);
 
+  // rAF-gated: mousemove can fire several times per frame, but one update
+  // per frame is all the springs can consume anyway. Desktop-only — taps
+  // synthesize mousemove events and would jolt the background.
+  const parallaxFrame = useRef(0);
   const handleMouseMove = (e: React.MouseEvent) => {
-    if (reduceMotion) return;
-    mx.set((e.clientX / window.innerWidth - 0.5) * 2);
-    my.set((e.clientY / window.innerHeight - 0.5) * 2);
+    if (reduceMotion || !isDesktop || parallaxFrame.current) return;
+    const { clientX, clientY } = e;
+    parallaxFrame.current = requestAnimationFrame(() => {
+      parallaxFrame.current = 0;
+      mx.set((clientX / window.innerWidth - 0.5) * 2);
+      my.set((clientY / window.innerHeight - 0.5) * 2);
+    });
   };
+  useEffect(() => () => cancelAnimationFrame(parallaxFrame.current), []);
 
   const phrases = useMemo(() => {
     const parts = site.tagline
@@ -251,13 +267,18 @@ export function Hero() {
     return parts.length > 0 ? parts : [site.tagline];
   }, []);
 
-  const hidden = { opacity: 0, y: 24, filter: "blur(8px)" };
+  // Blur reveals are desktop-only — animated filters are costly on phones
+  const hidden = isDesktop
+    ? { opacity: 0, y: 24, filter: "blur(8px)" }
+    : { opacity: 0, y: 24 };
   const reveal = (delay: number) =>
     reduceMotion
       ? {}
       : {
           initial: hidden,
-          animate: ready ? { opacity: 1, y: 0, filter: "blur(0px)" } : hidden,
+          animate: ready
+            ? { opacity: 1, y: 0, ...(isDesktop ? { filter: "blur(0px)" } : {}) }
+            : hidden,
           transition: { duration: 0.8, delay, ease: EASE },
         };
 
@@ -276,9 +297,11 @@ export function Hero() {
       className="relative min-h-svh overflow-hidden"
       onMouseMove={handleMouseMove}
     >
-      {/* Dither shader backdrop — drifts subtly against the pointer */}
+      {/* Dither shader backdrop — drifts subtly against the pointer.
+          Hidden on mobile: the static fallback reads as a flat dead
+          texture there, so phones get the footer's warm glow instead. */}
       <motion.div
-        className="pointer-events-none absolute -inset-3"
+        className="pointer-events-none absolute -inset-3 max-md:hidden"
         style={{
           x: reduceMotion ? 0 : bgX,
           y: reduceMotion ? 0 : bgY,
@@ -290,6 +313,18 @@ export function Hero() {
           <DitherBackground preset="hero" overlay={0} />
         </div>
       </motion.div>
+
+      {/* Mobile backdrop — the footer's warm glow, rising from the bottom
+          edge. Replaces the shader entirely below md so the hero opens on
+          the same texture the page closes with, at zero animation cost. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 md:hidden"
+        style={{
+          background:
+            "radial-gradient(ellipse 90% 85% at 50% 115%, rgba(255,59,59,0.06) 0%, rgba(255,59,59,0.02) 45%, transparent 75%)",
+        }}
+      />
 
       {/* Top Header / Branding */}
       <motion.div

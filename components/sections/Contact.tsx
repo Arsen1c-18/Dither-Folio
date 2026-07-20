@@ -191,7 +191,7 @@ export function Contact() {
                       whileInView={{ opacity: 1, scale: 1 }}
                       viewport={{ once: true, amount: 0.4 }}
                       transition={{ duration: 0.6, ease: EASE, delay: 0.15 + i * 0.1 }}
-                      className="group flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 whitespace-nowrap bg-[var(--color-bg)]/80 px-3 py-1.5 backdrop-blur-sm"
+                      className="group flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 whitespace-nowrap bg-[var(--color-bg)]/90 px-3 py-1.5 md:bg-[var(--color-bg)]/80 md:backdrop-blur-sm"
                     >
                       <span className="font-mono text-[0.6rem] uppercase tracking-[0.22em] text-[var(--color-subtle)] transition-colors duration-300 group-hover:text-[var(--color-accent)]">
                         {s.label}
