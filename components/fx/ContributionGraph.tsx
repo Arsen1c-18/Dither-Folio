@@ -200,6 +200,24 @@ export function ContributionGraph() {
 
   const step = cellSize + GAP;
 
+  /* Labels are ~20px of mono text but columns can shrink to a few px, so a
+     label can spill past its month — or past the card. Skip any label that
+     would overlap the previous one or hang off the right edge of the grid. */
+  const gridWidth = weeks.length * step - GAP;
+  const visibleLabels = useMemo(() => {
+    const LABEL_W = 20;
+    const out: { label: string; col: number }[] = [];
+    let lastRight = -Infinity;
+    for (const { label, col } of labels) {
+      const left = col * step;
+      if (left + LABEL_W > gridWidth) continue;
+      if (left - lastRight < 6) continue;
+      out.push({ label, col });
+      lastRight = left + LABEL_W;
+    }
+    return out;
+  }, [labels, step, gridWidth]);
+
   const DAY_LABELS = ["Mon", "", "Wed", "", "Fri", "", "Sun"];
 
   return (
@@ -235,11 +253,11 @@ export function ContributionGraph() {
       {/* Graph */}
       <div ref={gridWrapRef} className="relative">
         {/* Month labels */}
-        <div className="relative mb-1 h-4" style={{ marginLeft: 28 }}>
-          {labels.map(({ label, col }) => (
+        <div className="relative mb-1 h-4 overflow-hidden" style={{ marginLeft: 28 }}>
+          {visibleLabels.map(({ label, col }) => (
             <span
               key={`${label}-${col}`}
-              className="absolute font-mono text-[0.55rem] text-[var(--color-subtle)]"
+              className="absolute whitespace-nowrap font-mono text-[0.55rem] text-[var(--color-subtle)]"
               style={{ left: col * step }}
             >
               {label}
