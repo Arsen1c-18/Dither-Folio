@@ -11,7 +11,7 @@ import { NextResponse } from "next/server";
  * is missing or GitHub errors — the client falls back to seeded data.
  */
 
-export const revalidate = 86400; // re-fetch at most once a day
+export const revalidate = 3600; // re-fetch at most once an hour
 
 const QUERY = `
   query ($login: String!) {
@@ -49,7 +49,7 @@ export async function GET() {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ query: QUERY, variables: { login } }),
-      next: { revalidate: 86400 },
+      next: { revalidate: 3600 },
     });
 
     if (!res.ok) throw new Error(`GitHub responded ${res.status}`);
