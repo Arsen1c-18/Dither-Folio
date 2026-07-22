@@ -120,7 +120,7 @@
     ],
     "stats": [
       {
-        "label": "Years of experience",
+        "label": "Years of Internship experience",
         "value": "2+"
       },
       {
@@ -128,8 +128,8 @@
         "value": "15+"
       },
       {
-        "label": "Open-source contributions",
-        "value": "300+"
+        "label": "Hours Spent Building",
+        "value": "1000+"
       },
       {
         "label": "Cups of coffee",
@@ -328,7 +328,7 @@
     },
     {
       "name": "Three.js / WebGL",
-      "level": 30,
+      "level": 14,
       "category": "Frontend",
       "icon": "threedotjs",
       "hidden": false
@@ -398,35 +398,35 @@
     },
     {
       "name": "Git / GitHub",
-      "level": 80,
+      "level": 71,
       "category": "Software",
       "icon": "git",
       "hidden": false
     },
     {
       "name": "Linux",
-      "level": 53,
+      "level": 36,
       "category": "Software",
       "icon": "linux",
       "hidden": false
     },
     {
       "name": "C++",
-      "level": 98,
+      "level": 64,
       "category": "Languages",
       "icon": "cplusplus",
       "hidden": false
     },
     {
       "name": "Javascript",
-      "level": 76,
+      "level": 58,
       "category": "Frontend",
       "icon": "javascript",
       "hidden": false
     },
     {
       "name": "Supabase",
-      "level": 90,
+      "level": 76,
       "category": "Backend",
       "icon": "supabase",
       "hidden": false
