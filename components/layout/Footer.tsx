@@ -108,6 +108,7 @@ export function Footer() {
               <li>
                 LOCAL <LocalTime /> — {site.location}
               </li>
+              <VisitCount />
               <li className="text-[var(--color-subtle)]">
                 <a
                   href={site.resumeUrl}
@@ -142,6 +143,14 @@ export function Footer() {
 
 /* ─── elements ────────────────────────────────────────────────────────────── */
 
+/* Abacus counter. Namespace is public (it ships in the client bundle) and is
+   deliberately unguessable: the count can't be tampered with, but it can be
+   inflated by anyone who knows it. Claimed via /create, so an admin key exists
+   out-of-band to reset it if that ever happens. */
+const VISIT_NS = "moksh-portfolio-2f91d7";
+const VISIT_KEY = "visits";
+const VISIT_FLAG = "mb_visit_counted";
+
 /** Live clock in the site's own timezone. Renders a placeholder until
  *  mounted so server and client markup never disagree. */
 function LocalTime() {
@@ -162,6 +171,44 @@ function LocalTime() {
   }, []);
 
   return <span className="text-[var(--color-foreground)]">{time}</span>;
+}
+
+/** Global visit counter (Abacus — no key, no cookies, CORS-open).
+ *  Increments once per browser session; later mounts only read. Renders
+ *  nothing at all if the service is unreachable, so a dead third party
+ *  can never leave a broken readout in the console. */
+function VisitCount() {
+  const [count, setCount] = useState<number | null>(null);
+
+  useEffect(() => {
+    const counted = sessionStorage.getItem(VISIT_FLAG) === "1";
+    const url = `https://abacus.jasoncameron.dev/${counted ? "get" : "hit"}/${VISIT_NS}/${VISIT_KEY}`;
+
+    let alive = true;
+    fetch(url)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((j: { value?: number }) => {
+        if (!alive || typeof j.value !== "number") return;
+        sessionStorage.setItem(VISIT_FLAG, "1");
+        setCount(j.value);
+      })
+      .catch(() => {});
+
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  if (count === null) return null;
+
+  return (
+    <li>
+      VISITS{" "}
+      <span className="text-[var(--color-foreground)] tabular-nums">
+        {String(count).padStart(5, "0")}
+      </span>
+    </li>
+  );
 }
 
 /** Return-to-top control, styled like the rest of the console. */
