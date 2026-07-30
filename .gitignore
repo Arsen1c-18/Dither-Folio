@@ -3,7 +3,7 @@
 /.pnp
 .pnp.*
 .yarn/*
-
+/.claude
 # next.js
 /.next/
 /out/
