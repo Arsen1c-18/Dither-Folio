@@ -143,7 +143,7 @@
       },
       {
         "label": "LEARNING",
-        "value": "NestJS, PostgreSQL & System Design"
+        "value": "Backend, Distributed Systems & System Design"
       },
       {
         "label": "OFF-HOURS",
@@ -191,7 +191,7 @@
     },
     {
       "id": "exp-02",
-      "role": "Member",
+      "role": "Design Team Lead",
       "org": "GDG RBU",
       "period": "Oct '25 - Present",
       "current": true,
@@ -212,8 +212,8 @@
       "id": "exp-04",
       "role": "Frontend Developer Intern",
       "org": "Shaibya Solutions",
-      "period": "May '26 – Present",
-      "current": true,
+      "period": "May '26 – Jul '26",
+      "current": false,
       "summary": "Built responsive production-ready web applications using modern frontend technologies, translating designs into high-performance interfaces with smooth animations and scalable architecture.",
       "skills": [
         "Next.js",
@@ -229,6 +229,29 @@
         "Production Deployment",
         "Cross-team Collaboration"
       ]
+    },
+    {
+      "id": "exp-1793391033296",
+      "role": "FullStack Engineer",
+      "org": "Zocane",
+      "period": "Aug '26 - Sept '26",
+      "summary": "Worked as a Frontend Developer Intern at Zocane, developing a B2B gifting platform using Next.js 16, React 19 and Turborepo. Built onboarding flows, bulk CSV/XLSX imports, campaign builder and billing interfaces. Optimized Firestore catalog access, reducing reads by approximately 67%, and fixed caching and SSR persistence issues.",
+      "skills": [
+        "Next.js",
+        "React.js",
+        "TypeScript",
+        "JavaScript",
+        "Turborepo",
+        "Tailwind CSS",
+        "Firebase Firestore",
+        "REST APIs",
+        "Server-Side Rendering (SSR)",
+        "API Caching",
+        "Cache Revalidation",
+        "CSV/XLSX Processing",
+        "Regression Testing",
+        "Frontend Development"
+      ]
     }
   ],
   "achievements": [
@@ -236,22 +259,30 @@
   ],
   "projects": [
     {
-      "id": "proj-01",
-      "title": "Revolution Fitness Gym",
-      "description": "A premium fitness website featuring immersive 3D visuals, fluid animations, and a CMS-driven experience designed to elevate the gym's digital presence.",
+      "id": "proj-1793391996197",
+      "title": "SAMARTH – AI-Enabled Civic Grievance Platform",
+      "description": "Built an AI-powered civic grievance platform enabling citizens to report complaints through text and voice. Features AI-based classification, prioritization, role-based access control, multilingual speech recognition, and human-in-the-loop grievance management.",
       "year": "2026",
       "category": "Web App",
       "stack": [
-        "Next.js 15",
-        "React Three Fiber",
-        "Drei",
-        "GSAP",
-        "Framer Motion",
-        "Tailwind CSS",
-        "Sanity CMS"
+        "Next.js",
+        "TypeScript",
+        "FastAPI",
+        "Python",
+        "MongoDB",
+        "Groq API",
+        "Sarvam AI (Speech-to-Text)",
+        "JWT Authentication",
+        "Google OAuth",
+        "RBAC",
+        "TF-IDF",
+        "Logistic Regression",
+        "Vercel",
+        "Render",
+        "Pytest."
       ],
-      "href": "https://www.revolutionfitnesss.in/",
-      "image": "/projects/proj-01.webp?v=1784491498505"
+      "href": "https://samarth-griev-ai.vercel.app/",
+      "image": "/projects/proj-1793391996197.jpg?v=1793392195625"
     },
     {
       "id": "proj-02",
@@ -271,21 +302,22 @@
       "image": "/projects/proj-02.webp?v=1784491584292"
     },
     {
-      "id": "proj-03",
-      "title": "Petal",
-      "description": "An intelligent plant companion that identifies species, diagnoses diseases from leaf images, and delivers personalized care recommendations using computer vision.",
+      "id": "proj-01",
+      "title": "Revolution Fitness Gym",
+      "description": "A premium fitness website featuring immersive 3D visuals, fluid animations, and a CMS-driven experience designed to elevate the gym's digital presence.",
       "year": "2026",
-      "category": "ai-ml",
+      "category": "Web App",
       "stack": [
-        "Next.js",
-        "Python",
-        "FastAPI",
-        "TensorFlow",
-        "OpenCV",
-        "PostgreSQL"
+        "Next.js 15",
+        "React Three Fiber",
+        "Drei",
+        "GSAP",
+        "Framer Motion",
+        "Tailwind CSS",
+        "Sanity CMS"
       ],
-      "href": "https://petal-menstrual-health-platform.vercel.app/",
-      "image": "/projects/proj-03.webp?v=1784491672974"
+      "href": "https://www.revolutionfitnesss.in/",
+      "image": "/projects/proj-01.webp?v=1784491498505"
     },
     {
       "id": "proj-04",
@@ -302,19 +334,36 @@
       ],
       "href": "https://touchwoodfurnitech.com",
       "image": "/projects/proj-04.webp?v=1784491835343"
+    },
+    {
+      "id": "proj-03",
+      "title": "Petal",
+      "description": "An intelligent plant companion that identifies species, diagnoses diseases from leaf images, and delivers personalized care recommendations using computer vision.",
+      "year": "2026",
+      "category": "ai-ml",
+      "stack": [
+        "Next.js",
+        "Python",
+        "FastAPI",
+        "TensorFlow",
+        "OpenCV",
+        "PostgreSQL"
+      ],
+      "href": "https://petal-menstrual-health-platform.vercel.app/",
+      "image": "/projects/proj-03.webp?v=1784491672974"
     }
   ],
   "skills": [
     {
       "name": "TypeScript",
-      "level": 77,
+      "level": 38,
       "category": "Languages",
       "icon": "typescript",
       "hidden": false
     },
     {
       "name": "Python",
-      "level": 34,
+      "level": 18,
       "category": "Languages",
       "icon": "python",
       "hidden": false
@@ -377,21 +426,21 @@
     },
     {
       "name": "Leadership",
-      "level": 100,
+      "level": 87,
       "category": "Soft Skills",
       "icon": "",
       "hidden": false
     },
     {
       "name": "Communication",
-      "level": 93,
+      "level": 81,
       "category": "Soft Skills",
       "icon": "",
       "hidden": false
     },
     {
       "name": "Team Management",
-      "level": 90,
+      "level": 69,
       "category": "Soft Skills",
       "icon": "",
       "hidden": false
@@ -412,7 +461,7 @@
     },
     {
       "name": "C++",
-      "level": 64,
+      "level": 46,
       "category": "Languages",
       "icon": "cplusplus",
       "hidden": false
