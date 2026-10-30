@@ -4,12 +4,14 @@ import path from "node:path";
 import { isAuthenticated } from "@/lib/auth";
 
 /**
- * Upload a project image to public/projects/. Dev-only, like /api/admin/save:
+ * Upload an image for the dev-only admin dashboard, like /api/admin/save:
  * the filesystem is read-only on Vercel, so locally you upload → save →
  * commit → push → redeploy (the image is committed with the repo).
  *
- * Accepts multipart/form-data with `file` and `projectId`; the file is
- * stored as /projects/{projectId}{ext} and that public path is returned.
+ * Accepts multipart/form-data with `file`, `kind` ("project" | "experience",
+ * default "project") and the record's id — `projectId` for projects, `id` for
+ * experience records. The file is stored as /{kind}/{id}{ext} under public/
+ * and that public path is returned.
  */
 
 const ALLOWED = new Map([
@@ -19,6 +21,11 @@ const ALLOWED = new Map([
   ["image/avif", ".avif"],
 ]);
 const MAX_BYTES = 8 * 1024 * 1024;
+/* kind → the subdirectory under public/ the file is written to */
+const KIND_DIR = new Map([
+  ["project", "projects"],
+  ["experience", "experience"],
+]);
 
 export async function POST(request: Request) {
   if (process.env.NODE_ENV === "production") {
@@ -34,14 +41,19 @@ export async function POST(request: Request) {
 
   const form = await request.formData().catch(() => null);
   const file = form?.get("file");
-  const projectId = form?.get("projectId");
+  const kind = typeof form?.get("kind") === "string" ? String(form.get("kind")) : "project";
+  const id = typeof form?.get("id") === "string" ? String(form.get("id")) : String(form?.get("projectId") ?? "");
 
-  if (!(file instanceof File) || typeof projectId !== "string" || !projectId) {
-    return NextResponse.json({ error: "Expected `file` and `projectId`" }, { status: 400 });
+  if (!(file instanceof File) || !id) {
+    return NextResponse.json({ error: "Expected `file` and the record id" }, { status: 400 });
   }
   // The id becomes a filename — keep it to safe characters
-  if (!/^[a-zA-Z0-9_-]+$/.test(projectId)) {
-    return NextResponse.json({ error: "Invalid projectId" }, { status: 400 });
+  if (!/^[a-zA-Z0-9_-]+$/.test(id)) {
+    return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+  }
+  const dirName = KIND_DIR.get(kind);
+  if (!dirName) {
+    return NextResponse.json({ error: `Unknown kind \`${kind}\`` }, { status: 400 });
   }
   const ext = ALLOWED.get(file.type);
   if (!ext) {
@@ -55,11 +67,11 @@ export async function POST(request: Request) {
   }
 
   try {
-    const dir = path.join(process.cwd(), "public", "projects");
+    const dir = path.join(process.cwd(), "public", dirName);
     await mkdir(dir, { recursive: true });
     const bytes = Buffer.from(await file.arrayBuffer());
-    await writeFile(path.join(dir, `${projectId}${ext}`), bytes);
-    return NextResponse.json({ ok: true, path: `/projects/${projectId}${ext}` });
+    await writeFile(path.join(dir, `${id}${ext}`), bytes);
+    return NextResponse.json({ ok: true, path: `/${dirName}/${id}${ext}` });
   } catch (err) {
     return NextResponse.json(
       { error: "Failed to write file", detail: String(err) },

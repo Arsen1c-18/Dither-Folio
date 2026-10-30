@@ -24,6 +24,10 @@ export interface ExperienceItem {
   skills?: string[];
   /** Notable wins during this role, e.g. "1st — Build with AI Hackathon". */
   achievements?: string[];
+  /** Image path/URL for the card's emblem panel (e.g. "/projects/exp-01.png").
+   *  Renders as a small image in place of the org emblem; empty keeps the
+   *  conventional per-org emblem. */
+  image?: string;
 }
 
 export type ProjectCategory = string;

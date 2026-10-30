@@ -38,6 +38,7 @@ const experienceItemSchema = z.object({
   summary: z.string(),
   skills: z.array(z.string()).optional(),
   achievements: z.array(z.string()).optional(),
+  image: z.string().optional(),
 });
 
 const projectSchema = z.object({

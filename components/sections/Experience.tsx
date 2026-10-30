@@ -369,8 +369,8 @@ function TimelineRecord({
             </p>
           </div>
 
-          {/* Org emblem — right-aligned, one symbol per organisation */}
-          <OrgEmblem id={item.id} org={item.org} />
+          {/* Org image/emblem — right-aligned, one symbol per organisation */}
+          <OrgMedia id={item.id} org={item.org} image={item.image} />
         </button>
 
         {/* Expandable details section */}
@@ -430,6 +430,44 @@ function TimelineRecord({
         </AnimatePresence>
       </div>
     </motion.li>
+  );
+}
+
+/* ─── Org media — optional small image, else the per-org emblem ───────────── */
+
+/**
+ * Panel rendered at the right edge of every record. When the record has an
+ * `image` (path or URL), it shows that as a small sharp-cornered image; a
+ * failed load 404s (path typo, asset removed) ⇒ falls back to OrgEmblem so
+ * the layout never shows a broken-image icon.
+ */
+function OrgMedia({
+  id,
+  org,
+  image,
+}: {
+  id: string;
+  org: string;
+  image?: string;
+}) {
+  const [failed, setFailed] = useState(false);
+  if (!image || failed) return <OrgEmblem id={id} org={org} />;
+
+  return (
+    <span
+      aria-hidden
+      className="relative mt-1 hidden size-16 shrink-0 overflow-hidden border border-[var(--color-border)] transition-colors duration-500 group-hover:border-[var(--color-accent)]/40 sm:block lg:size-20"
+    >
+      {/* key remounts on src change (cache-busted re-uploads) and resets failed */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        key={image}
+        src={image}
+        alt=""
+        onError={() => setFailed(true)}
+        className="absolute inset-0 size-full object-cover object-top transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
+      />
+    </span>
   );
 }
 

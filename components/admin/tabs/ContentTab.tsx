@@ -9,7 +9,7 @@ import {
   Toggle,
   IconButton,
 } from "@/components/admin/fields";
-import type { Project } from "@/types";
+import type { Project, ExperienceItem } from "@/types";
 import { SkillsEditor } from "@/components/admin/SkillsEditor";
 
 // Seed for the About NOW block when the JSON doesn't have one yet — mirrors
@@ -103,6 +103,91 @@ function ProjectImageField({ project, index }: { project: Project; index: number
   );
 }
 
+/**
+ * Experience-image control for one record: upload a file (stored under
+ * public/experience/, dev-only), paste a path/URL, preview, and clear.
+ * Empty keeps the built-in per-org emblem — there is no conventional path.
+ */
+function ExperienceImageField({ item, index }: { item: ExperienceItem; index: number }) {
+  const { update } = useAdmin();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleFile(file: File) {
+    setBusy(true);
+    setError(null);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      body.append("id", item.id);
+      body.append("kind", "experience");
+      const res = await fetch("/api/admin/upload", { method: "POST", body });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error ?? `Upload failed (${res.status})`);
+      // Bust the browser cache so re-uploads show immediately
+      update((d) => { d.experience[index].image = `${json.path}?v=${Date.now()}`; });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-end gap-3">
+        {/* Preview thumb — a square, like the emblem slot it replaces */}
+        <span className="relative flex h-16 w-16 flex-none items-center justify-center overflow-hidden rounded-md border border-[var(--color-border)] bg-[var(--color-bg)]">
+          <span className="absolute px-1 text-center font-mono text-[0.5rem] leading-tight text-[var(--color-faint)]">
+            emblem
+          </span>
+          {item.image && (
+            /* eslint-disable-next-line @next/next/no-img-element */
+            <img
+              key={item.image}
+              src={item.image}
+              alt=""
+              className="absolute inset-0 size-full object-cover"
+              onError={(e) => { e.currentTarget.style.display = "none"; }}
+            />
+          )}
+        </span>
+
+        <div className="min-w-48 flex-1">
+          <TextField
+            label="Image (path or URL)"
+            value={item.image ?? ""}
+            placeholder="empty → built-in emblem"
+            onChange={(v) => update((d) => { d.experience[index].image = v; })}
+            hint="Small square image shown on the card in place of the org emblem."
+          />
+        </div>
+
+        <label className={`cursor-pointer rounded-md border border-[var(--color-border-strong)] px-3 py-2 text-xs transition-colors ${busy ? "opacity-50" : "text-[var(--color-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-foreground)]"}`}>
+          {busy ? "Uploading…" : "Upload"}
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/avif"
+            className="hidden"
+            disabled={busy}
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void handleFile(f);
+              e.target.value = "";
+            }}
+          />
+        </label>
+        {item.image && (
+          <IconButton onClick={() => update((d) => { d.experience[index].image = ""; })} title="Clear image">
+            ✕
+          </IconButton>
+        )}
+      </div>
+      {error && <p className="text-xs text-[var(--color-accent)]">{error}</p>}
+    </div>
+  );
+}
+
 /** Content tab — Projects, Experience, Skills, and the About section. */
 export function ContentTab() {
   const { data, update } = useAdmin();
@@ -126,7 +211,17 @@ export function ContentTab() {
                 <TextField label="Title" value={p.title} onChange={(v) => update((d) => { d.projects[i].title = v; })} />
                 <TextField label="Year" value={p.year} onChange={(v) => update((d) => { d.projects[i].year = v; })} />
                 <TextField label="Category" value={p.category} onChange={(v) => update((d) => { d.projects[i].category = v; })} />
-                <IconButton onClick={() => update((d) => { d.projects.splice(i, 1); })} title="Remove">✕</IconButton>
+                <div className="flex items-center gap-1">
+                  <IconButton
+                    onClick={() => update((d) => { if (i > 0) { const [it] = d.projects.splice(i, 1); d.projects.splice(i - 1, 0, it); } })}
+                    title="Move up"
+                  >↑</IconButton>
+                  <IconButton
+                    onClick={() => update((d) => { if (i < d.projects.length - 1) { const [it] = d.projects.splice(i, 1); d.projects.splice(i + 1, 0, it); } })}
+                    title="Move down"
+                  >↓</IconButton>
+                  <IconButton onClick={() => update((d) => { d.projects.splice(i, 1); })} title="Remove">✕</IconButton>
+                </div>
               </div>
               <TextArea label="Description" value={p.description} onChange={(v) => update((d) => { d.projects[i].description = v; })} rows={2} />
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -181,6 +276,7 @@ export function ContentTab() {
                   hint='e.g. "1st — Build with AI Hackathon"'
                 />
               </div>
+              <ExperienceImageField item={x} index={i} />
               <Toggle label="Current role" value={x.current ?? false} onChange={(v) => update((d) => { d.experience[i].current = v; })} />
             </div>
           ))}
